@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#141414">
+  <title>Konfirmasi Pesanan | Lambe Turah</title>
+
+  <style>
+    :root {
+      --red: #c91e2b;
+      --dark: #151515;
+      --yellow: #ffd32a;
+      --muted: #747474;
+      --page: #f8f7f4;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--page);
+      color: var(--dark);
+      font-family: -apple-system, BlinkMacSystemFont,
+        "Segoe UI", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .header {
+      background: var(--dark);
+      padding: 24px 20px 28px;
+      text-align: center;
+      border-bottom: 5px solid var(--yellow);
+    }
+
+    .logo {
+      display: block;
+      width: min(100%, 340px);
+      margin: auto;
+      background: white;
+      border-radius: 15px;
+      padding: 10px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 540px;
+      margin: 0 auto;
+      padding: 24px 17px 55px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #efeeeb;
+      border-radius: 24px;
+      padding: 27px 20px;
+      box-shadow: 0 10px 35px rgba(0,0,0,.05);
+    }
+
+    .success-icon {
+      width: 74px;
+      height: 74px;
+      background: #e8f7ec;
+      color: #16813d;
+      font-size: 38px;
+      font-weight: 900;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 18px;
+    }
+
+    h1 {
+      margin: 0;
+      text-align: center;
+      font-size: clamp(24px, 6vw, 31px);
+      line-height: 1.25;
+      font-weight: 850;
+      letter-spacing: -.6px;
+    }
+
+    .subtitle {
+      margin: 12px auto 0;
+      text-align: center;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 390px;
+    }
+
+    .order-number {
+      margin-top: 25px;
+      padding: 21px 15px;
+      text-align: center;
+      border: 1px solid #f4d4d5;
+      background: #fff4f3;
+      border-radius: 17px;
+    }
+
+    .order-number span {
+      display: block;
+      font-size: 13px;
+      color: #925257;
+      margin-bottom: 9px;
+    }
+
+    .order-number strong {
+      font-size: clamp(16px, 4.4vw, 22px);
+      color: #a71922;
+      overflow-wrap: anywhere;
+      letter-spacing: .2px;
+    }
+
+    .steps {
+      margin: 27px 0 24px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .step-number {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      background: #f1f1f1;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .step strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 3px;
+    }
+
+    .step p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .whatsapp-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 59px;
+      text-align: center;
+      text-decoration: none;
+      background: var(--red);
+      color: white;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 850;
+      padding: 15px;
+      box-shadow: 0 7px 18px rgba(201,30,43,.18);
+    }
+
+    .whatsapp-button:active {
+      transform: scale(.99);
+    }
+
+    .secondary-button {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      margin-top: 12px;
+      border: 1px solid #e8e8e8;
+      border-radius: 13px;
+      background: white;
+      color: #333;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .notice {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 14px;
+      background: #fff9e8;
+      color: #73571a;
+      font-size: 13px;
+      line-height: 1.65;
+    }
+
+    .notice strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      color: #555;
+      font-size: 14px;
+      margin-top: 25px;
+      font-weight: 700;
+    }
+
+    .footer {
+      text-align: center;
+      color: #999;
+      font-size: 12px;
+      padding: 24px 10px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .message {
+      text-align: center;
+      color: #555;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    @media (max-width: 480px) {
+      .header {
+        padding: 18px 18px 23px;
+      }
+
+      .container {
+        padding-top: 20px;
+      }
+
+      .card {
+        padding: 24px 18px;
+      }
+
+      .logo {
+        width: min(100%, 310px);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="header">
+    <img
+      class="logo"
+      src="images/logo-lambe-turah.jpg"
+      alt="Logo Ceker dan Kerang Pedas Lambe Turah"
+    >
+  </header>
+
+  <main class="container">
+
+    <section class="card" id="successPanel">
+
+      <div class="success-icon">✓</div>
+
+      <h1>Pesanan Berhasil Dicatat!</h1>
+
+      <p class="subtitle">
+        Terima kasih sudah memesan di Lambe Turah.
+        Satu langkah lagi untuk menyampaikan pesanan
+        Anda kepada admin outlet.
+      </p>
+
+      <div class="order-number">
+        <span>Nomor Pesanan Anda</span>
+        <strong id="orderId">-</strong>
+      </div>
+
+      <div class="steps">
+
+        <div class="step">
+          <div class="step-number">1</div>
+          <div>
+            <strong>Pesanan tersimpan</strong>
+            <p>Data sudah masuk ke sistem Lambe Turah.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">2</div>
+          <div>
+            <strong>Lanjutkan ke WhatsApp</strong>
+            <p>
+              Kirim pesan yang sudah kami siapkan
+              kepada admin outlet.
+            </p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">3</div>
+          <div>
+            <strong>Tunggu konfirmasi admin</strong>
+            <p>
+              Admin akan memastikan ketersediaan menu,
+              titik pengiriman, dan total pembayaran.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+      <a
+        id="whatsappButton"
+        class="whatsapp-button"
+        href="#"
+      >
+        💬 Lanjut Kirim ke WhatsApp
+      </a>
+
+      <button
+        id="copyButton"
+        type="button"
+        class="secondary-button"
+      >
+        📋 Salin Tautan WhatsApp
+      </button>
+
+      <div class="notice" id="notice">
+        <strong>Pesanan belum dikonfirmasi.</strong>
+        Setelah WhatsApp terbuka, tekan tombol
+        Kirim agar admin menerima pesanan Anda.
+        Jangan melakukan checkout ulang.
+      </div>
+
+      <a class="back-link" href="./">
+        ← Kembali ke Beranda
+      </a>
+
+    </section>
+
+    <section class="card hidden" id="emptyPanel">
+      <h1>Belum Ada Konfirmasi Pesanan</h1>
+      <p class="message">
+        Halaman ini akan digunakan setelah pesanan
+        berhasil disimpan ke database.
+      </p>
+      <a class="back-link" href="./">
+        ← Kembali ke Website Lambe Turah
+      </a>
+    </section>
+
+    <section class="card hidden" id="sentPanel">
+      <div class="success-icon">✓</div>
+      <h1>Silakan Selesaikan di WhatsApp</h1>
+      <p class="subtitle">
+        Pesanan Anda sudah tercatat.
+        Pastikan pesan benar-benar dikirim kepada
+        admin outlet agar bisa diproses.
+      </p>
+
+      <p class="message" id="sentOrderNumber"></p>
+
+      <button
+        type="button"
+        class="secondary-button"
+        id="openAgain"
+      >
+        💬 Buka WhatsApp Lagi
+      </button>
+
+      <a class="back-link" href="./">
+        ← Kembali ke Beranda
+      </a>
+    </section>
+
+    <div class="footer">
+      Ceker & Kerang Pedas Lambe Turah
+    </div>
+
+  </main>
+
+  <script>
+    "use strict";
+
+    const STORAGE_KEY =
+      "lambe_turah_order_result_v1";
+
+    let order = null;
+
+    const byId = id =>
+      document.getElementById(id);
+
+    const successPanel = byId("successPanel");
+    const emptyPanel = byId("emptyPanel");
+    const sentPanel = byId("sentPanel");
+
+    function showPanel(panel) {
+      [successPanel, emptyPanel, sentPanel]
+        .forEach(item => item.classList.add("hidden"));
+
+      panel.classList.remove("hidden");
+    }
+
+    function validWhatsAppUrl(url) {
+      try {
+        const parsed = new URL(url);
+
+        return (
+          parsed.protocol === "https:" &&
+          parsed.hostname === "wa.me" &&
+          [
+            "/6285791655515",
+            "/6285855188856"
+          ].includes(parsed.pathname)
+        );
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function loadOrder() {
+      try {
+        const stored =
+          sessionStorage.getItem(STORAGE_KEY);
+
+        if (!stored) {
+          showPanel(emptyPanel);
+          return;
+        }
+
+        const data = JSON.parse(stored);
+
+        if (
+          !data ||
+          typeof data.orderId !== "string" ||
+          !/^LT-[A-Za-z0-9-]+$/.test(data.orderId) ||
+          !validWhatsAppUrl(data.whatsapp)
+        ) {
+          showPanel(emptyPanel);
+          return;
+        }
+
+        order = data;
+
+        byId("orderId").textContent =
+          order.orderId;
+
+        byId("sentOrderNumber").textContent =
+          "Nomor Pesanan: " + order.orderId;
+
+        showPanel(
+          order.whatsappOpened
+            ? sentPanel
+            : successPanel
+        );
+
+      } catch (error) {
+        showPanel(emptyPanel);
+      }
+    }
+
+    function openWhatsApp() {
+      if (!order ||
+          !validWhatsAppUrl(order.whatsapp)) {
+        alert("Tautan WhatsApp tidak tersedia.");
+        return;
+      }
+
+      // Status ini berarti tautan sudah dibuka,
+      // bukan bukti pesan telah terkirim.
+      order.whatsappOpened = true;
+
+      sessionStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(order)
+      );
+
+      // Mengganti halaman saat membuka WhatsApp,
+      // agar konfirmasi tidak tertinggal dalam
+      // riwayat navigasi normal.
+      window.location.replace(order.whatsapp);
+    }
+
+    byId("whatsappButton").addEventListener(
+      "click",
+      event => {
+        event.preventDefault();
+        openWhatsApp();
+      }
+    );
+
+    byId("openAgain").addEventListener(
+      "click",
+      openWhatsApp
+    );
+
+    byId("copyButton").addEventListener(
+      "click",
+      async () => {
+        if (!order) return;
+
+        try {
+          await navigator.clipboard.writeText(
+            order.whatsapp
+          );
+
+          byId("copyButton").textContent =
+            "✅ Tautan Berhasil Disalin";
+
+        } catch (error) {
+          alert(
+            "Penyalinan otomatis belum didukung. " +
+            "Silakan gunakan tombol WhatsApp."
+          );
+        }
+      }
+    );
+
+    loadOrder();
+  </script>
+
+</body>
+</html>
