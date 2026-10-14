@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#171717">
-<meta name="description" content="Pesan Delivery Ceker & Kerang Pedas Lambe Turah. Pilih menu, level pedas, outlet, dan pembayaran.">
+<meta name="description" content="Pesan Delivery Ceker & Kerang Pedas Lambe Turah. Pilih menu, level kepedasan, outlet, dan pembayaran.">
 <title>Delivery Order | Lambe Turah</title>
 
 <style>
@@ -46,7 +46,9 @@ a:focus-visible {
 [hidden] {display:none!important}
 a {color:inherit}
 
-/* HEADER */
+/* ===================================
+   HEADER
+=================================== */
 
 .hero {
   padding:29px 16px 37px;
@@ -118,7 +120,9 @@ a {color:inherit}
 
 .hero-step b {color:var(--yellow)}
 
-/* PANEL */
+/* ===================================
+   PANEL
+=================================== */
 
 main {
   max-width:1080px;
@@ -148,7 +152,9 @@ main {
   margin:0 0 16px;
 }
 
-/* OUTLET */
+/* ===================================
+   OUTLET
+=================================== */
 
 .outlets {
   display:grid;
@@ -171,7 +177,9 @@ main {
   color:var(--red);
 }
 
-/* MENU */
+/* ===================================
+   MENU
+=================================== */
 
 .tabs {
   display:flex;
@@ -297,7 +305,9 @@ main {
   color:#777;
 }
 
-/* KERANJANG */
+/* ===================================
+   KERANJANG
+=================================== */
 
 .cart-item {
   display:flex;
@@ -343,7 +353,9 @@ main {
   font-weight:800;
 }
 
-/* RINGKASAN */
+/* ===================================
+   RINGKASAN
+=================================== */
 
 .summary-line {
   display:flex;
@@ -367,7 +379,9 @@ main {
   color:var(--red);
 }
 
-/* FORMULIR */
+/* ===================================
+   FORMULIR
+=================================== */
 
 .fields {
   display:grid;
@@ -409,7 +423,9 @@ main {
   border-color:var(--red);
 }
 
-/* LOKASI */
+/* ===================================
+   LOKASI
+=================================== */
 
 .geo-buttons {
   display:flex;
@@ -468,7 +484,9 @@ main {
   margin-top:14px;
 }
 
-/* PEMBAYARAN */
+/* ===================================
+   PEMBAYARAN
+=================================== */
 
 .pay-grid {
   display:grid;
@@ -536,7 +554,9 @@ main {
 
 .checkout:disabled {background:#bbb}
 
-/* FOOTER */
+/* ===================================
+   FOOTER
+=================================== */
 
 .footer {
   text-align:center;
@@ -546,7 +566,9 @@ main {
   line-height:1.7;
 }
 
-/* KERANJANG BAWAH */
+/* ===================================
+   KERANJANG MELAYANG
+=================================== */
 
 .sticky {
   position:fixed;
@@ -589,7 +611,9 @@ main {
   font-size:12px;
 }
 
-/* MODAL PRODUK */
+/* ===================================
+   MODAL PRODUK
+=================================== */
 
 .modal-backdrop {
   position:fixed;
@@ -669,8 +693,14 @@ main {
   margin:17px 0 10px;
 }
 
-.choices {display:grid;gap:9px}
-.choices.two {grid-template-columns:1fr 1fr}
+.choices {
+  display:grid;
+  gap:9px;
+}
+
+.choices.two {
+  grid-template-columns:1fr 1fr;
+}
 
 .choice {
   display:flex;
@@ -736,7 +766,9 @@ main {
   font-weight:900;
 }
 
-/* RESPONSIVE */
+/* ===================================
+   TAMPILAN RESPONSIF
+=================================== */
 
 @media(max-width:850px) {
   .grid-products {
@@ -786,7 +818,12 @@ main {
 
 <body>
 
+<!-- ===================================
+     HEADER
+=================================== -->
+
 <header class="hero">
+
   <div class="hero-badge">
     🔥 DELIVERY ORDER
   </div>
@@ -811,23 +848,30 @@ main {
     <span class="hero-step">
       <b>01</b> Pilih Outlet
     </span>
+
     <span class="hero-step">
       <b>02</b> Pilih Menu
     </span>
+
     <span class="hero-step">
       <b>03</b> Cek Ongkir
     </span>
+
     <span class="hero-step">
       <b>04</b> Pesan
     </span>
   </div>
+
 </header>
 
 <main>
 
-<!-- OUTLET -->
+<!-- ===================================
+     PILIH OUTLET
+=================================== -->
 
 <section class="panel" id="outletSection">
+
   <h2>📍 Pilih Outlet</h2>
 
   <p class="help">
@@ -835,6 +879,7 @@ main {
   </p>
 
   <div class="outlets">
+
     <button
       class="outlet-btn selected"
       type="button"
@@ -850,12 +895,17 @@ main {
       aria-pressed="false">
       📍 Mondokan
     </button>
+
   </div>
+
 </section>
 
-<!-- MENU -->
+<!-- ===================================
+     PILIH MENU
+=================================== -->
 
 <section class="panel" id="menuSection">
+
   <h2>🍽️ Pilih Menu</h2>
 
   <p class="help">
@@ -875,14 +925,19 @@ main {
 
   <div
     class="grid-products"
-    id="productGrid"></div>
+    id="productGrid">
+  </div>
 
   <div id="productMessage"></div>
+
 </section>
 
-<!-- KERANJANG -->
+<!-- ===================================
+     KERANJANG PESANAN
+=================================== -->
 
 <section class="panel" id="cartSection">
+
   <h2>🛒 Keranjang Pesanan</h2>
 
   <p class="help">
@@ -891,22 +946,33 @@ main {
   </p>
 
   <div id="cartItems">
+
     <div class="empty">
       Belum ada menu dipilih.
     </div>
+
   </div>
 
   <div class="summary-line total-line">
+
     <span>
       Subtotal Makanan & Minuman
     </span>
-    <strong id="cartSubtotal">Rp0</strong>
+
+    <strong id="cartSubtotal">
+      Rp0
+    </strong>
+
   </div>
+
 </section>
 
-<!-- DATA PELANGGAN -->
+<!-- ===================================
+     DATA PELANGGAN
+=================================== -->
 
 <section class="panel" id="customerSection">
+
   <h2>📝 Data Pengiriman</h2>
 
   <p class="help">
@@ -916,6 +982,7 @@ main {
   <div class="fields">
 
     <div class="field">
+
       <label for="customerName">
         Nama Penerima *
       </label>
@@ -926,9 +993,11 @@ main {
         autocomplete="name"
         placeholder="Nama pelanggan"
       >
+
     </div>
 
     <div class="field">
+
       <label for="customerPhone">
         Nomor WhatsApp *
       </label>
@@ -940,9 +1009,11 @@ main {
         inputmode="tel"
         placeholder="08xxxxxxxxxx"
       >
+
     </div>
 
     <div class="field full">
+
       <label for="customerAddress">
         Alamat Pengiriman *
       </label>
@@ -950,9 +1021,11 @@ main {
       <textarea
         id="customerAddress"
         placeholder="Alamat lengkap, nomor rumah, RT/RW, dan patokan"></textarea>
+
     </div>
 
     <div class="field full">
+
       <label for="customerNotes">
         Catatan Tambahan
       </label>
@@ -960,14 +1033,19 @@ main {
       <textarea
         id="customerNotes"
         placeholder="Contoh: bumbu dipisah, patokan rumah, atau permintaan khusus"></textarea>
+
     </div>
 
   </div>
+
 </section>
 
-<!-- LOKASI DAN ONGKIR -->
+<!-- ===================================
+     LOKASI DAN ONGKIR
+=================================== -->
 
 <section class="panel" id="locationSection">
+
   <h2>🛵 Lokasi & Ongkir</h2>
 
   <p class="help">
@@ -1016,6 +1094,7 @@ main {
       readonly
       placeholder="Terisi setelah GPS berhasil"
     >
+
   </div>
 
   <div
@@ -1038,9 +1117,12 @@ main {
     Lebih dari 9 km belum dilayani.
     Ongkir akhir dikonfirmasi admin.
   </div>
+
 </section>
 
-<!-- PEMBAYARAN -->
+<!-- ===================================
+     RINGKASAN DAN PEMBAYARAN
+=================================== -->
 
 <section class="panel" id="paymentSection">
 
@@ -1052,22 +1134,33 @@ main {
   </p>
 
   <div class="summary-line">
+
     <span>Subtotal Pesanan</span>
+
     <strong id="summarySubtotal">
       Rp0
     </strong>
+
   </div>
 
   <div class="summary-line">
+
     <span>Ongkir Estimasi</span>
+
     <strong id="summaryShipping">
       Belum dihitung
     </strong>
+
   </div>
 
   <div class="summary-line total-line">
+
     <span>Total Estimasi</span>
-    <strong id="summaryTotal">Rp0</strong>
+
+    <strong id="summaryTotal">
+      Rp0
+    </strong>
+
   </div>
 
   <h3 style="font-size:15px;margin:25px 0 0">
@@ -1077,6 +1170,7 @@ main {
   <div class="pay-grid">
 
     <label class="pay-option">
+
       <input
         type="radio"
         name="payment"
@@ -1088,13 +1182,16 @@ main {
 
       <span>
         <strong>Cash</strong>
+
         <small>
           Bayar tunai saat pesanan diterima
         </small>
       </span>
+
     </label>
 
     <label class="pay-option">
+
       <input
         type="radio"
         name="payment"
@@ -1105,11 +1202,13 @@ main {
 
       <span>
         <strong>QRIS</strong>
+
         <small>
           QRIS dinamis dikirim admin
           setelah konfirmasi
         </small>
       </span>
+
     </label>
 
   </div>
@@ -1141,7 +1240,12 @@ main {
 
 </section>
 
+<!-- ===================================
+     FOOTER
+=================================== -->
+
 <footer class="footer">
+
   <strong>
     Ceker & Kerang Pedas Lambe Turah
   </strong>
@@ -1149,22 +1253,29 @@ main {
   <div>
     Luweh Nampol Teko Lambene Tonggomu!
   </div>
+
 </footer>
 
 </main>
 
-<!-- KERANJANG MELAYANG BAWAH -->
+<!-- ===================================
+     KERANJANG MELAYANG BAWAH
+=================================== -->
 
 <div class="sticky">
+
   <div class="sticky-inner">
 
     <div>
+
       <small id="stickyCount">
         0 item dipilih
       </small>
+
       <strong id="stickySubtotal">
         Rp0
       </strong>
+
     </div>
 
     <a href="#cartSection">
@@ -1172,9 +1283,12 @@ main {
     </a>
 
   </div>
+
 </div>
 
-<!-- MODAL PRODUK -->
+<!-- ===================================
+     MODAL PRODUK
+=================================== -->
 
 <div
   class="modal-backdrop"
@@ -1211,16 +1325,16 @@ main {
       >
 
       <div>
-        <strong id="modalProductName">
-        </strong>
 
-        <small id="modalProductDesc">
-        </small>
+        <strong id="modalProductName"></strong>
+
+        <small id="modalProductDesc"></small>
 
         <div
           class="modal-price"
           id="modalPrice">
         </div>
+
       </div>
 
     </div>
@@ -1232,6 +1346,7 @@ main {
       <span>Jumlah</span>
 
       <div>
+
         <button
           type="button"
           id="minusQty">
@@ -1245,15 +1360,19 @@ main {
           id="plusQty">
           +
         </button>
+
       </div>
 
     </div>
 
     <div class="modal-total">
+
       <span>Total</span>
+
       <strong id="modalTotal">
         Rp0
       </strong>
+
     </div>
 
     <button
@@ -1264,13 +1383,18 @@ main {
     </button>
 
   </div>
+
 </div>
 
-<!-- KONFIGURASI -->
+<!-- ===================================
+     KONFIGURASI WEBSITE
+=================================== -->
 
 <script src="./config.js"></script>
 
-<!-- SISTEM KATALOG DAN KERANJANG -->
+<!-- ===================================
+     SISTEM KATALOG DAN KERANJANG
+=================================== -->
 
 <script>
 "use strict";
@@ -1345,9 +1469,7 @@ function productVariantType(product) {
   }
 
   if (
-    ["es-teh","es-jeruk"].includes(
-      product.id
-    )
+    ["es-teh","es-jeruk"].includes(product.id)
   ) {
     return "temperature";
   }
@@ -1356,20 +1478,23 @@ function productVariantType(product) {
 }
 
 // ===================================
-// SUBTOTAL
+// HITUNG SUBTOTAL
 // ===================================
 
 function getSubtotal() {
-  return cart.reduce((sum,item) => {
-    const product =
-      productById(item.id);
+  return cart.reduce(
+    (sum,item) => {
+      const product =
+        productById(item.id);
 
-    return sum + (
-      product
-        ? product.price * item.quantity
-        : 0
-    );
-  }, 0);
+      return sum + (
+        product
+          ? product.price * item.quantity
+          : 0
+      );
+    },
+    0
+  );
 }
 
 function getCartCount() {
@@ -1404,7 +1529,7 @@ function saveCart() {
 }
 
 // ===================================
-// KATEGORI
+// TAMPILKAN KATEGORI
 // ===================================
 
 function drawCategories() {
@@ -1424,7 +1549,7 @@ function drawCategories() {
 }
 
 // ===================================
-// GAMBAR ASLI
+// VALIDASI PATH GAMBAR
 // ===================================
 
 function safeImagePath(image) {
@@ -1437,7 +1562,7 @@ function safeImagePath(image) {
 }
 
 // ===================================
-// TAMPILKAN KATALOG
+// TAMPILKAN PRODUK
 // ===================================
 
 function drawProducts() {
@@ -1466,7 +1591,6 @@ function drawProducts() {
 
   el("productGrid").innerHTML =
     products.map(product => {
-
       const path =
         safeImagePath(product.image);
 
@@ -1536,7 +1660,7 @@ function drawProducts() {
 }
 
 // ===================================
-// KERANJANG
+// GAMBAR KERANJANG
 // ===================================
 
 function drawCart() {
@@ -1549,7 +1673,6 @@ function drawCart() {
   el("cartItems").innerHTML =
     cart.length
       ? cart.map((item,index) => {
-
           const product =
             productById(item.id);
 
@@ -1601,6 +1724,7 @@ function drawCart() {
                 </button>
 
               </div>
+
             </div>
           `;
         }).join("")
@@ -1621,7 +1745,7 @@ function drawCart() {
 }
 
 // ===================================
-// MODAL: TOTAL
+// HITUNG TOTAL DI MODAL
 // ===================================
 
 function updateModalTotal() {
@@ -1638,11 +1762,12 @@ function updateModalTotal() {
 }
 
 // ===================================
-// MODAL: BUKA
+// BUKA MODAL PRODUK
 // ===================================
 
 function openProductModal(id) {
   const product = productById(id);
+
   if (!product) return;
 
   selectedProduct = product;
@@ -1737,22 +1862,23 @@ function openProductModal(id) {
 
   el("productModal").hidden = false;
 
-  document.body.style.overflow =
-    "hidden";
+  document.body.style.overflow = "hidden";
 }
 
 // ===================================
-// MODAL: TUTUP
+// TUTUP MODAL
 // ===================================
 
 function closeProductModal() {
   el("productModal").hidden = true;
+
   document.body.style.overflow = "";
+
   selectedProduct = null;
 }
 
 // ===================================
-// TAMBAH ITEM
+// TAMBAH PRODUK KE KERANJANG
 // ===================================
 
 function confirmProduct() {
@@ -1771,13 +1897,12 @@ function confirmProduct() {
     );
 
   if (existing) {
-    existing.quantity +=
-      selectedQuantity;
+    existing.quantity += selectedQuantity;
   } else {
     cart.push({
-      id:selectedProduct.id,
+      id: selectedProduct.id,
       variant,
-      quantity:selectedQuantity
+      quantity: selectedQuantity
     });
   }
 
@@ -1786,7 +1911,7 @@ function confirmProduct() {
 }
 
 // ===================================
-// KONTROL JUMLAH
+// KONTROL JUMLAH DI MODAL
 // ===================================
 
 el("plusQty").addEventListener(
@@ -1837,8 +1962,7 @@ el("productModal").addEventListener(
   "click",
   event => {
     if (
-      event.target ===
-      el("productModal")
+      event.target === el("productModal")
     ) {
       closeProductModal();
     }
@@ -1858,16 +1982,14 @@ document.addEventListener(
 );
 
 // ===================================
-// TOMBOL TAMBAH MENU
+// EVENT TAMBAH PRODUK
 // ===================================
 
 el("productGrid").addEventListener(
   "click",
   event => {
     const button =
-      event.target.closest(
-        "[data-product]"
-      );
+      event.target.closest("[data-product]");
 
     if (button) {
       openProductModal(
@@ -1878,16 +2000,14 @@ el("productGrid").addEventListener(
 );
 
 // ===================================
-// PILIH KATEGORI
+// EVENT KATEGORI
 // ===================================
 
 el("categoryTabs").addEventListener(
   "click",
   event => {
     const button =
-      event.target.closest(
-        "[data-category]"
-      );
+      event.target.closest("[data-category]");
 
     if (!button) return;
 
@@ -1909,30 +2029,24 @@ el("menuSearch").addEventListener(
 );
 
 // ===================================
-// UPDATE KERANJANG
+// PERBARUI JUMLAH KERANJANG
 // ===================================
 
 el("cartItems").addEventListener(
   "click",
   event => {
     const button =
-      event.target.closest(
-        "[data-cart-index]"
-      );
+      event.target.closest("[data-cart-index]");
 
     if (!button) return;
 
     const index =
-      Number(
-        button.dataset.cartIndex
-      );
+      Number(button.dataset.cartIndex);
 
     if (!cart[index]) return;
 
     cart[index].quantity +=
-      Number(
-        button.dataset.change
-      );
+      Number(button.dataset.change);
 
     if (cart[index].quantity <= 0) {
       cart.splice(index, 1);
@@ -1943,13 +2057,12 @@ el("cartItems").addEventListener(
 );
 
 // ===================================
-// PILIH OUTLET
+// GANTI OUTLET
 // ===================================
 
 document.querySelectorAll(
   "[data-outlet]"
 ).forEach(button => {
-
   button.addEventListener(
     "click",
     () => {
@@ -1959,7 +2072,6 @@ document.querySelectorAll(
       document.querySelectorAll(
         "[data-outlet]"
       ).forEach(item => {
-
         const isSelected =
           item === button;
 
@@ -1979,29 +2091,23 @@ document.querySelectorAll(
       );
     }
   );
-
 });
 
 // ===================================
-// KONEKSI KE DELIVERY.JS
+// KONEKSI UNTUK DELIVERY.JS V8.0
 // ===================================
 
 window.LAMBE_APP = {
-
-  getOutlet: () =>
-    selectedOutlet,
+  getOutlet: () => selectedOutlet,
 
   getCart: () =>
-    cart.map(item => ({
-      ...item
-    })),
+    cart.map(item => ({...item})),
 
   getProduct: productById,
 
   getSubtotal,
 
   formatRp
-
 };
 
 // ===================================
@@ -2037,16 +2143,14 @@ async function initializeMenu() {
       typeof item.id === "string" &&
       typeof item.name === "string" &&
       typeof item.category === "string" &&
-      Number.isFinite(
-        Number(item.price)
-      ) &&
+      Number.isFinite(Number(item.price)) &&
       Number(item.price) >= 0
     ).map(item => ({
       ...item,
-      price:Number(item.price)
+      price: Number(item.price)
     }));
 
-    // Muat keranjang yang sudah ada.
+    // Keranjang lama tetap dipertahankan.
     try {
       const saved = JSON.parse(
         localStorage.getItem(
@@ -2101,18 +2205,21 @@ initializeMenu();
 
 </script>
 
-<!--
-  DELIVERY.JS V7.1
+<!-- ===================================
+     DELIVERY.JS V8.0 — STABLE CHECKOUT
 
-  Mengelola:
-  - GPS dan ongkir
-  - Cash / QRIS
-  - Google Spreadsheet
-  - Konfirmasi pesanan
-  - WhatsApp Bantuan melayang
--->
+     Mengelola:
+     - GPS dan ongkir
+     - Pembayaran Cash / QRIS
+     - POST langsung ke Apps Script
+     - Halaman hasil pesanan
+     - WhatsApp Bantuan melayang
 
-<script src="./delivery.js?v=7.1"></script>
+     Tombol bantuan otomatis dibuat
+     di delivery.js, bukan di HTML ini.
+=================================== -->
+
+<script src="./delivery.js?v=8.0"></script>
 
 </body>
 </html>
