@@ -1,641 +1,658 @@
 (() => {
-"use strict";
+  "use strict";
 
-/*
-  LAMBE TURAH — DELIVERY ORDER v5.0
+  /*
+   * LAMBE TURAH — DELIVERY ORDER v6.0
+   * Integrasi Google Spreadsheet + WhatsApp
+   */
 
-  Fitur:
-  - Penghitungan estimasi jarak jalan
-  - Ongkir berdasarkan jarak
-  - Minimum order untuk jarak >7 km
-  - Pembayaran Cash / QRIS Dinamis
-  - WhatsApp rapi per variasi menu
-  - Konfirmasi lokasi pengiriman
-*/
+  const API_URL =
+    "https://script.google.com/macros/s/AKfycbxeNI9gVEryLDCAZNNXTZiKzUG2mTCu5V4o7HTiSssHgAmh6o_e7W8idEBoG3_jml69eQ/exec";
 
-const $ = id => document.getElementById(id);
-const app = window.LAMBE_APP;
+  const OUTLETS = {
+    pahlawan: {
+      name: "Pahlawan",
+      whatsapp: "6285791655515",
+      lat: -6.9074875,
+      lng: 112.0741406
+    },
+    mondokan: {
+      name: "Mondokan",
+      whatsapp: "6285855188856",
+      lat: -6.8861875,
+      lng: 112.0269375
+    }
+  };
 
-const OUTLETS = {
-  pahlawan: {
-    name:"Pahlawan",
-    whatsapp:"6285791655515",
-    lat:-6.9074875,
-    lng:112.0741406
-  },
-  mondokan: {
-    name:"Mondokan",
-    whatsapp:"6285855188856",
-    lat:-6.8861875,
-    lng:112.0269375
-  }
-};
+  const app = window.LAMBE_APP;
+  const $ = id => document.getElementById(id);
 
-const rp = value =>
-  "Rp"+Math.round(Number(value)||0).toLocaleString("id-ID");
+  const rp = amount =>
+    "Rp" + Math.round(Number(amount) || 0)
+      .toLocaleString("id-ID");
 
-let customerLocation = null;
-let calculatedRoute = null;
-let calculating = false;
-let routeRequest = 0;
+  let customerLocation = null;
+  let calculatedRoute = null;
+  let calculating = false;
+  let submitting = false;
+  let routeRequestId = 0;
 
-function currentOutlet() {
-  return OUTLETS[app.getOutlet()];
-}
-
-function subtotal() {
-  return app.getSubtotal();
-}
-
-function calculateFee(km) {
-  if (km<=2) return 2000;
-  if (km<=4) return 3000;
-  if (km<=6) return 5000;
-  if (km<=7) return 7000;
-
-  if (km<=9) {
-    return Math.ceil(km)*1000;
+  function currentOutlet() {
+    return OUTLETS[app.getOutlet()];
   }
 
-  return null;
-}
+  function subtotal() {
+    return app.getSubtotal();
+  }
 
-function minimumOrder(km) {
-  return km>7 ? 75000 : 0;
-}
+  function paymentMethod() {
+    return document.querySelector(
+      'input[name="payment"]:checked'
+    )?.value || "Cash";
+  }
 
-function paymentMethod() {
-  return document.querySelector(
-    'input[name="payment"]:checked'
-  )?.value || "Cash";
-}
+  function calculateFee(distanceKm) {
+    if (distanceKm <= 2) return 2000;
+    if (distanceKm <= 4) return 3000;
+    if (distanceKm <= 6) return 5000;
+    if (distanceKm <= 7) return 7000;
 
-function showLocationStatus(message,type="") {
-  const target = $("locationStatus");
-  target.className = "status "+type;
-  target.textContent = message;
-}
-
-function routeIsValid() {
-  return (
-    calculatedRoute !== null &&
-    calculatedRoute.outlet===app.getOutlet() &&
-    customerLocation !== null &&
-    calculatedRoute.lat===customerLocation.lat &&
-    calculatedRoute.lng===customerLocation.lng
-  );
-}
-
-function refreshPaymentInfo() {
-  const payment = paymentMethod();
-
-  $("paymentInfo").textContent = payment==="QRIS"
-    ? "📱 Anda memilih QRIS. Setelah admin mengonfirmasi menu, titik pengiriman, dan total pembayaran, admin akan mengirim QRIS dinamis sesuai nominal transaksi. Jangan membayar sebelum menerima konfirmasi admin."
-    : "💵 Anda memilih Cash. Pembayaran tunai dilakukan saat pesanan diterima, sesuai total yang sudah dikonfirmasi admin.";
-}
-
-function refreshSummary() {
-  const sub = subtotal();
-
-  $("summarySubtotal").textContent = rp(sub);
-
-  const valid = routeIsValid();
-  const route = valid ? calculatedRoute : null;
-  const fee = route ? route.fee : null;
-
-  const total = fee===null ? sub : sub+fee;
-
-  $("summaryShipping").textContent =
-    fee===null ? "Belum tersedia" : rp(fee);
-
-  $("summaryTotal").textContent = rp(total);
-
-  if (!route) {
-    $("distanceSummary").textContent =
-      "Jarak dan ongkir menunggu lokasi pengiriman.";
-  } else {
-    const min = minimumOrder(route.km);
-
-    let text =
-      "Jarak rute estimasi: "+route.km.toFixed(2)+" km"+
-      " | Ongkir: "+(
-        fee===null ? "Di luar jangkauan" : rp(fee)
-      );
-
-    if (min>0) {
-      text +=
-        " | Minimal belanja: "+rp(min);
-
-      if (sub<min) {
-        text +=
-          " | Kurang: "+rp(min-sub);
-      }
+    if (distanceKm <= 9) {
+      return Math.ceil(distanceKm) * 1000;
     }
 
-    $("distanceSummary").textContent = text;
+    return null;
   }
 
-  const button = $("checkoutButton");
-
-  if (calculating) {
-    button.disabled = true;
-    button.textContent = "Menghitung Ongkir...";
-    return;
+  function minimumOrder(distanceKm) {
+    return distanceKm > 7 ? 75000 : 0;
   }
 
-  if (!route) {
-    button.disabled = true;
-    button.textContent = "Tentukan Lokasi Pengiriman Dahulu";
-    return;
+  function setLocationStatus(message, type = "") {
+    const element = $("locationStatus");
+
+    element.className = "status " + type;
+    element.textContent = message;
   }
 
-  if (fee===null) {
-    button.disabled = true;
-    button.textContent = "Di Luar Jangkauan Delivery";
-    return;
-  }
-
-  if (sub<=0) {
-    button.disabled = true;
-    button.textContent = "Pilih Menu Terlebih Dahulu";
-    return;
-  }
-
-  const min = minimumOrder(route.km);
-
-  if (sub<min) {
-    button.disabled = true;
-    button.textContent =
-      "Minimal Order "+rp(min);
-    return;
-  }
-
-  button.disabled = false;
-  button.textContent = "💬 Kirim Pesanan ke WhatsApp";
-}
-
-/*
-  Jarak diambil dari layanan routing publik OSRM.
-  Bila layanan tidak tersedia, ongkir tidak dianggap
-  berhasil dihitung dan checkout dinonaktifkan.
-*/
-async function calculateRoute() {
-  const requestId = ++routeRequest;
-  calculatedRoute = null;
-
-  if (!customerLocation) {
-    calculating = false;
-    showLocationStatus(
-      "Silakan gunakan GPS lokasi pengiriman terlebih dahulu.",
-      "error"
+  function routeIsValid() {
+    return Boolean(
+      calculatedRoute &&
+      customerLocation &&
+      calculatedRoute.outlet === app.getOutlet() &&
+      calculatedRoute.lat === customerLocation.lat &&
+      calculatedRoute.lng === customerLocation.lng
     );
-    refreshSummary();
-    return;
   }
 
-  const outlet = currentOutlet();
+  function updatePaymentInfo() {
+    const payment = paymentMethod();
 
-  if (!outlet) {
-    calculating = false;
-    showLocationStatus("Outlet tidak ditemukan.","error");
-    refreshSummary();
-    return;
+    $("paymentInfo").textContent =
+      payment === "QRIS"
+        ? "📱 Pembayaran QRIS dinamis. Setelah admin memastikan ketersediaan menu, ketepatan titik pengiriman, dan nominal akhir, admin akan mengirimkan QRIS sesuai jumlah pembayaran. Jangan membayar sebelum menerima konfirmasi."
+        : "💵 Pembayaran tunai saat pesanan diterima. Total pembayaran akan dikonfirmasi oleh admin outlet.";
   }
 
-  calculating = true;
-  refreshSummary();
+  function updateSummary() {
+    const foodTotal = subtotal();
 
-  showLocationStatus(
-    "Lokasi diterima. Sedang menghitung jarak melalui jalan..."
-  );
+    $("summarySubtotal").textContent = rp(foodTotal);
 
-  const lat = customerLocation.lat;
-  const lng = customerLocation.lng;
-  const outletKey = app.getOutlet();
+    const route = routeIsValid()
+      ? calculatedRoute
+      : null;
 
-  try {
-    const endpoint =
-      "https://router.project-osrm.org/route/v1/driving/"+
-      outlet.lng+","+outlet.lat+";"+
-      lng+","+lat+
-      "?overview=false&steps=false";
+    const fee = route ? route.fee : null;
 
-    const controller = new AbortController();
-    const timeout = setTimeout(
-      () => controller.abort(),
-      15000
-    );
+    $("summaryShipping").textContent =
+      fee === null
+        ? "Belum tersedia"
+        : rp(fee);
 
-    let response;
+    $("summaryTotal").textContent =
+      rp(foodTotal + (fee === null ? 0 : fee));
 
-    try {
-      response = await fetch(endpoint,{
-        signal:controller.signal,
-        cache:"no-store"
-      });
-    } finally {
-      clearTimeout(timeout);
-    }
-
-    if (!response.ok) {
-      throw new Error("Layanan rute sedang tidak tersedia.");
-    }
-
-    const result = await response.json();
-    const distanceMeters = result.routes?.[0]?.distance;
-
-    if (
-      !Number.isFinite(distanceMeters) ||
-      distanceMeters<0
-    ) {
-      throw new Error("Rute jalan tidak ditemukan.");
-    }
-
-    if (requestId!==routeRequest) return;
-
-    const km = distanceMeters/1000;
-    const fee = calculateFee(km);
-
-    calculatedRoute = {
-      outlet:outletKey,
-      lat,
-      lng,
-      km,
-      fee
-    };
-
-    if (fee===null) {
-      showLocationStatus(
-        "Titik pengiriman terdeteksi, tetapi jaraknya "+
-        km.toFixed(2)+
-        " km. Maaf, maksimal jangkauan delivery 9 km.",
-        "error"
-      );
+    if (!route) {
+      $("distanceSummary").textContent =
+        "Jarak dan ongkir menunggu lokasi pengiriman.";
     } else {
-      showLocationStatus(
-        "✅ Lokasi terdeteksi. Estimasi jarak "+
-        km.toFixed(2)+
-        " km, ongkir "+rp(fee)+
-        ". Mohon tunggu konfirmasi akhir dari admin.",
-        "success"
-      );
+      const requiredMinimum = minimumOrder(route.km);
+
+      let description =
+        "Jarak rute estimasi: " +
+        route.km.toFixed(2) +
+        " km | Ongkir: " +
+        (fee === null ? "Di luar jangkauan" : rp(fee));
+
+      if (requiredMinimum > 0) {
+        description +=
+          " | Minimal belanja: " +
+          rp(requiredMinimum);
+
+        if (foodTotal < requiredMinimum) {
+          description +=
+            " | Kekurangan: " +
+            rp(requiredMinimum - foodTotal);
+        }
+      }
+
+      $("distanceSummary").textContent = description;
     }
 
-  } catch(error) {
-    if (requestId!==routeRequest) return;
+    const button = $("checkoutButton");
+
+    if (submitting) {
+      button.disabled = true;
+      button.textContent = "Mengirim Pesanan...";
+      return;
+    }
+
+    if (calculating) {
+      button.disabled = true;
+      button.textContent = "Menghitung Ongkir...";
+      return;
+    }
+
+    if (!route) {
+      button.disabled = true;
+      button.textContent = "Tentukan Lokasi Pengiriman Dahulu";
+      return;
+    }
+
+    if (fee === null) {
+      button.disabled = true;
+      button.textContent = "Di Luar Jangkauan Delivery";
+      return;
+    }
+
+    if (foodTotal <= 0) {
+      button.disabled = true;
+      button.textContent = "Pilih Menu Terlebih Dahulu";
+      return;
+    }
+
+    const minimum = minimumOrder(route.km);
+
+    if (foodTotal < minimum) {
+      button.disabled = true;
+      button.textContent =
+        "Minimal Order " + rp(minimum);
+      return;
+    }
+
+    button.disabled = false;
+    button.textContent =
+      "💬 Simpan Pesanan & Lanjut ke WhatsApp";
+  }
+
+  /*
+   * MENGHITUNG JARAK RUTE
+   * Menggunakan layanan routing publik OSRM.
+   */
+
+  async function calculateRoute() {
+    const requestId = ++routeRequestId;
 
     calculatedRoute = null;
 
-    showLocationStatus(
-      "Ongkir belum berhasil dihitung. "+
-      "Periksa koneksi internet lalu tekan Hitung Ulang Ongkir. "+
-      error.message,
-      "error"
-    );
-
-  } finally {
-    if (requestId===routeRequest) {
+    if (!customerLocation) {
       calculating = false;
-      refreshSummary();
+
+      setLocationStatus(
+        "Silakan tentukan lokasi pengiriman terlebih dahulu.",
+        "error"
+      );
+
+      updateSummary();
+      return;
     }
-  }
-}
 
-/*
-  GPS pelanggan
-*/
-$("getLocation").addEventListener("click",() => {
-  if (!navigator.geolocation) {
-    showLocationStatus(
-      "Browser tidak mendukung layanan lokasi.",
-      "error"
+    const outlet = currentOutlet();
+
+    if (!outlet) {
+      calculating = false;
+
+      setLocationStatus(
+        "Outlet tidak ditemukan.",
+        "error"
+      );
+
+      updateSummary();
+      return;
+    }
+
+    calculating = true;
+    updateSummary();
+
+    setLocationStatus(
+      "Lokasi diterima. Sedang menghitung jarak melalui jalan..."
     );
-    return;
-  }
 
-  if (!window.isSecureContext) {
-    showLocationStatus(
-      "Layanan lokasi memerlukan koneksi HTTPS.",
-      "error"
-    );
-    return;
-  }
+    const lat = customerLocation.lat;
+    const lng = customerLocation.lng;
+    const outletKey = app.getOutlet();
 
-  showLocationStatus(
-    "Meminta izin lokasi. Pilih Izinkan apabila muncul pemberitahuan."
-  );
+    try {
+      const endpoint =
+        "https://router.project-osrm.org/route/v1/driving/" +
+        outlet.lng + "," + outlet.lat + ";" +
+        lng + "," + lat +
+        "?overview=false&steps=false";
 
-  navigator.geolocation.getCurrentPosition(
-    position => {
-      const lat = position.coords.latitude;
-      const lng = position.coords.longitude;
+      const controller = new AbortController();
 
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-        showLocationStatus(
-          "Koordinat tidak valid. Silakan coba kembali.",
-          "error"
+      const timeout = setTimeout(
+        () => controller.abort(),
+        15000
+      );
+
+      let response;
+
+      try {
+        response = await fetch(endpoint, {
+          signal: controller.signal,
+          cache: "no-store"
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+
+      if (!response.ok) {
+        throw new Error(
+          "Layanan rute sedang tidak tersedia."
         );
+      }
+
+      const result = await response.json();
+
+      const meters = result.routes?.[0]?.distance;
+
+      if (
+        !Number.isFinite(meters) ||
+        meters < 0
+      ) {
+        throw new Error(
+          "Rute jalan tidak ditemukan."
+        );
+      }
+
+      if (requestId !== routeRequestId) {
         return;
       }
 
-      customerLocation = {lat,lng};
+      const km = meters / 1000;
+      const fee = calculateFee(km);
 
-      const mapsUrl =
-        "https://www.google.com/maps?q="+
-        lat+","+lng;
+      calculatedRoute = {
+        outlet: outletKey,
+        lat,
+        lng,
+        km,
+        fee
+      };
 
-      $("mapsLink").value = mapsUrl;
-
-      calculateRoute();
-    },
-
-    error => {
-      ++routeRequest;
-      calculating = false;
-      calculatedRoute = null;
-
-      let message =
-        "Lokasi belum berhasil diperoleh.";
-
-      if (error.code===1) {
-        message =
-          "Izin lokasi ditolak. Buka pengaturan situs Safari, "+
-          "izinkan akses lokasi, lalu coba kembali.";
-      } else if (error.code===2) {
-        message =
-          "Sinyal GPS belum tersedia. "+
-          "Coba pindah ke tempat yang lebih terbuka.";
-      } else if (error.code===3) {
-        message =
-          "Pengambilan lokasi terlalu lama. "+
-          "Silakan coba kembali.";
+      if (fee === null) {
+        setLocationStatus(
+          "Lokasi ditemukan, tetapi jarak " +
+          km.toFixed(2) +
+          " km berada di luar jangkauan delivery maksimal 9 km.",
+          "error"
+        );
+      } else {
+        setLocationStatus(
+          "✅ Lokasi terdeteksi. Jarak estimasi " +
+          km.toFixed(2) +
+          " km dengan ongkir " +
+          rp(fee) +
+          ". Total akhir dikonfirmasi admin.",
+          "success"
+        );
+      }
+    } catch (error) {
+      if (requestId !== routeRequestId) {
+        return;
       }
 
-      showLocationStatus(message,"error");
-      refreshSummary();
-    },
+      calculatedRoute = null;
 
-    {
-      enableHighAccuracy:true,
-      timeout:18000,
-      maximumAge:0
+      setLocationStatus(
+        "Ongkir belum berhasil dihitung. " +
+        "Periksa koneksi lalu coba lagi. " +
+        error.message,
+        "error"
+      );
+    } finally {
+      if (requestId === routeRequestId) {
+        calculating = false;
+        updateSummary();
+      }
     }
-  );
-});
+  }
 
-$("recalculate").addEventListener(
-  "click",
-  calculateRoute
-);
+  /*
+   * MENGAMBIL LOKASI PELANGGAN
+   */
 
-/*
-  Bila outlet berubah, ongkir wajib dihitung ulang.
-*/
-document.addEventListener("lambe-outlet-updated",() => {
-  ++routeRequest;
-  calculatedRoute = null;
-  calculating = false;
-  refreshSummary();
+  $("getLocation").addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      setLocationStatus(
+        "Browser ini tidak mendukung layanan lokasi.",
+        "error"
+      );
+      return;
+    }
 
-  if (customerLocation) {
-    calculateRoute();
-  } else {
-    showLocationStatus(
-      "Outlet diperbarui. Gunakan lokasi untuk menghitung ongkir."
+    if (!window.isSecureContext) {
+      setLocationStatus(
+        "Akses GPS membutuhkan website HTTPS.",
+        "error"
+      );
+      return;
+    }
+
+    setLocationStatus(
+      "Sedang meminta lokasi. Pilih Izinkan apabila muncul pemberitahuan."
     );
-  }
-});
 
-document.addEventListener("lambe-cart-updated",refreshSummary);
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
 
-document.querySelectorAll(
-  'input[name="payment"]'
-).forEach(input => {
-  input.addEventListener("change",refreshPaymentInfo);
-});
+        if (
+          !Number.isFinite(lat) ||
+          !Number.isFinite(lng)
+        ) {
+          setLocationStatus(
+            "Titik lokasi tidak valid.",
+            "error"
+          );
+          return;
+        }
 
-/*
-  Nomor pelanggan divalidasi sebelum pesan dikirim.
-*/
-function validPhone(value) {
-  const digits = value.replace(/[^\d]/g,"");
+        customerLocation = { lat, lng };
 
-  return /^08\d{8,11}$/.test(digits) ||
-         /^628\d{8,11}$/.test(digits);
-}
+        $("mapsLink").value =
+          "https://www.google.com/maps?q=" +
+          lat + "," + lng;
 
-function safeText(value) {
-  return String(value||"").trim();
-}
+        calculateRoute();
+      },
 
-/*
-  Nama variasi dalam WhatsApp.
-  Setiap item membawa pilihannya sendiri.
-*/
-function formatVariant(item,product) {
-  if (!item.variant) return "";
+      error => {
+        ++routeRequestId;
 
-  if (["es-teh","es-jeruk"].includes(product.id)) {
-    return "   Penyajian: "+item.variant+"\n";
-  }
+        calculating = false;
+        calculatedRoute = null;
 
-  return "   Level: "+item.variant+"\n";
-}
+        let message =
+          "Lokasi belum berhasil diperoleh.";
 
-function buildOrderLines(items) {
-  return items.map((item,index) => {
-    const product = app.getProduct(item.id);
+        if (error.code === 1) {
+          message =
+            "Izin lokasi ditolak. Aktifkan izin lokasi untuk Safari atau browser, kemudian coba lagi.";
+        } else if (error.code === 2) {
+          message =
+            "Sinyal GPS belum tersedia. Coba berada di lokasi yang lebih terbuka.";
+        } else if (error.code === 3) {
+          message =
+            "Pengambilan lokasi terlalu lama. Silakan coba kembali.";
+        }
 
-    const lineTotal = product.price*item.quantity;
+        setLocationStatus(message, "error");
+        updateSummary();
+      },
 
-    return (
-      (index+1)+". *"+product.name+"* × "+item.quantity+"\n"+
-      formatVariant(item,product)+
-      "   "+rp(product.price)+" × "+item.quantity+
-      " = *"+rp(lineTotal)+"*"
+      {
+        enableHighAccuracy: true,
+        timeout: 18000,
+        maximumAge: 0
+      }
     );
-  }).join("\n\n");
-}
-
-/*
-  Format pesan WhatsApp:
-  - sapaan ramah
-  - rincian pesanan per variasi
-  - subtotal, ongkir, total
-  - metode pembayaran
-  - data pengiriman
-  - permintaan konfirmasi titik pengiriman
-*/
-function buildWhatsAppMessage({
-  outlet,
-  items,
-  name,
-  phone,
-  address,
-  notes,
-  payment,
-  route
-}) {
-  const sub = subtotal();
-  const total = sub+route.fee;
-
-  const paymentDetails = payment==="QRIS"
-    ? [
-        "💳 *Metode Pembayaran:* QRIS Dinamis",
-        "Status: Belum Dibayar",
-        "QRIS akan dikirim admin setelah pesanan dikonfirmasi."
-      ].join("\n")
-    : [
-        "💵 *Metode Pembayaran:* Cash",
-        "Status: Belum Dibayar",
-        "Pembayaran tunai saat pesanan diterima."
-      ].join("\n");
-
-  const closing = payment==="QRIS"
-    ? [
-        "Mohon dibantu konfirmasi ketersediaan menu,",
-        "ketepatan titik lokasi pengiriman, ongkir,",
-        "serta total pembayarannya ya, Kak.",
-        "",
-        "Untuk pembayaran QRIS, saya menunggu",
-        "kode QR dari admin setelah pesanan dikonfirmasi.",
-        "",
-        "Terima kasih 🙏"
-      ].join("\n")
-    : [
-        "Mohon dibantu konfirmasi ketersediaan menu,",
-        "ketepatan titik lokasi pengiriman, ongkir,",
-        "serta total pembayarannya ya, Kak.",
-        "",
-        "Pembayaran saya lakukan secara tunai",
-        "saat pesanan diterima.",
-        "",
-        "Terima kasih 🙏"
-      ].join("\n");
-
-  return [
-    "Halo Kak, saya mau Delivery Order Lambe Turah 😊",
-    "",
-    "Mohon dibantu pesanan saya berikut ya, Kak.",
-    "",
-    "🍽️ *PESANAN DELIVERY LAMBE TURAH*",
-    "📍 *Outlet: "+outlet.name+"*",
-    "",
-    "*RINCIAN PESANAN*",
-    "━━━━━━━━━━━━━━━━",
-    buildOrderLines(items),
-    "",
-    "*RINCIAN PEMBAYARAN*",
-    "━━━━━━━━━━━━━━━━",
-    "Subtotal: "+rp(sub),
-    "Ongkir estimasi: "+rp(route.fee),
-    "*TOTAL ESTIMASI: "+rp(total)+"*",
-    "",
-    paymentDetails,
-    "",
-    "*DATA PENGIRIMAN*",
-    "━━━━━━━━━━━━━━━━",
-    "👤 Nama: "+name,
-    "📱 WhatsApp: "+phone,
-    "🏠 Alamat: "+address,
-    "📍 Titik Google Maps:",
-    $("mapsLink").value,
-    "",
-    "🛵 Estimasi jarak: "+route.km.toFixed(2)+" km",
-    "📝 Catatan: "+notes,
-    "",
-    closing
-  ].join("\n");
-}
-
-/*
-  Checkout ke WhatsApp
-*/
-$("checkoutButton").addEventListener("click",() => {
-  if (!routeIsValid()) {
-    alert(
-      "Lokasi dan ongkir belum valid. "+
-      "Silakan hitung ulang ongkir."
-    );
-    return;
-  }
-
-  const route = calculatedRoute;
-
-  if (route.fee===null) {
-    alert("Lokasi di luar jangkauan delivery.");
-    return;
-  }
-
-  const items = app.getCart().filter(item =>
-    app.getProduct(item.id)
-  );
-
-  if (!items.length) {
-    alert("Silakan pilih makanan atau minuman dahulu.");
-    return;
-  }
-
-  if (subtotal()<minimumOrder(route.km)) {
-    alert(
-      "Minimal belanja untuk jarak ini adalah "+
-      rp(minimumOrder(route.km))
-    );
-    return;
-  }
-
-  const name = safeText($("customerName").value);
-  const phone = safeText($("customerPhone").value);
-  const address = safeText($("customerAddress").value);
-  const notes = safeText($("customerNotes").value)||"-";
-  const payment = paymentMethod();
-
-  if (!name) {
-    alert("Silakan isi nama penerima.");
-    $("customerName").focus();
-    return;
-  }
-
-  if (!validPhone(phone)) {
-    alert("Silakan isi nomor WhatsApp yang valid.");
-    $("customerPhone").focus();
-    return;
-  }
-
-  if (!address) {
-    alert("Silakan isi alamat pengiriman lengkap.");
-    $("customerAddress").focus();
-    return;
-  }
-
-  const outlet = currentOutlet();
-
-  if (!outlet || !/^62\d{9,13}$/.test(outlet.whatsapp)) {
-    alert("Nomor WhatsApp outlet tidak valid.");
-    return;
-  }
-
-  const message = buildWhatsAppMessage({
-    outlet,
-    items,
-    name,
-    phone,
-    address,
-    notes,
-    payment,
-    route
   });
 
-  const whatsappUrl =
-    "https://wa.me/"+outlet.whatsapp+
-    "?text="+encodeURIComponent(message);
+  $("recalculate").addEventListener(
+    "click",
+    calculateRoute
+  );
 
-  // Navigasi langsung dari klik pelanggan
-  // agar lebih andal di Safari iPhone.
-  window.location.href = whatsappUrl;
-});
+  /*
+   * OUTLET DAN KERANJANG
+   */
 
-refreshPaymentInfo();
-refreshSummary();
+  document.addEventListener(
+    "lambe-outlet-updated",
+    () => {
+      ++routeRequestId;
+
+      calculatedRoute = null;
+      calculating = false;
+
+      updateSummary();
+
+      if (customerLocation) {
+        calculateRoute();
+      } else {
+        setLocationStatus(
+          "Outlet diperbarui. Gunakan lokasi untuk menghitung ongkir."
+        );
+      }
+    }
+  );
+
+  document.addEventListener(
+    "lambe-cart-updated",
+    updateSummary
+  );
+
+  document.querySelectorAll(
+    'input[name="payment"]'
+  ).forEach(input => {
+    input.addEventListener(
+      "change",
+      updatePaymentInfo
+    );
+  });
+
+  /*
+   * VALIDASI DATA PELANGGAN
+   */
+
+  function cleanText(value) {
+    return String(value || "").trim();
+  }
+
+  function validPhone(value) {
+    const digits = value.replace(/[^\d]/g, "");
+
+    return (
+      /^08\d{8,11}$/.test(digits) ||
+      /^628\d{8,11}$/.test(digits)
+    );
+  }
+
+  function validateOrder() {
+    if (!routeIsValid()) {
+      alert(
+        "Lokasi dan ongkir belum valid. Silakan hitung ulang."
+      );
+      return null;
+    }
+
+    const route = calculatedRoute;
+
+    if (route.fee === null) {
+      alert(
+        "Lokasi berada di luar jangkauan delivery."
+      );
+      return null;
+    }
+
+    const items = app.getCart().filter(item =>
+      app.getProduct(item.id)
+    );
+
+    if (!items.length) {
+      alert(
+        "Silakan pilih makanan atau minuman terlebih dahulu."
+      );
+      return null;
+    }
+
+    if (
+      subtotal() < minimumOrder(route.km)
+    ) {
+      alert(
+        "Minimal belanja untuk jarak ini adalah " +
+        rp(minimumOrder(route.km))
+      );
+      return null;
+    }
+
+    const name =
+      cleanText($("customerName").value);
+
+    const phone =
+      cleanText($("customerPhone").value);
+
+    const address =
+      cleanText($("customerAddress").value);
+
+    const notes =
+      cleanText($("customerNotes").value) || "-";
+
+    const payment = paymentMethod();
+
+    if (name.length < 2) {
+      alert("Silakan isi nama penerima.");
+      $("customerName").focus();
+      return null;
+    }
+
+    if (!validPhone(phone)) {
+      alert(
+        "Silakan isi nomor WhatsApp yang valid."
+      );
+      $("customerPhone").focus();
+      return null;
+    }
+
+    if (address.length < 5) {
+      alert(
+        "Silakan isi alamat pengiriman dengan lengkap."
+      );
+      $("customerAddress").focus();
+      return null;
+    }
+
+    if (!["Cash", "QRIS"].includes(payment)) {
+      alert(
+        "Silakan pilih metode pembayaran."
+      );
+      return null;
+    }
+
+    const outletKey = app.getOutlet();
+
+    if (!OUTLETS[outletKey]) {
+      alert(
+        "Outlet tidak valid. Silakan pilih kembali."
+      );
+      return null;
+    }
+
+    /*
+     * Server akan memeriksa harga dan ongkir ulang.
+     * Harga dari browser tidak dikirim sebagai
+     * sumber kebenaran.
+     */
+
+    return {
+      outlet: outletKey,
+      name,
+      phone,
+      address,
+      notes,
+      payment,
+      latitude: customerLocation.lat,
+      longitude: customerLocation.lng,
+      items: items.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+        variant: item.variant || ""
+      }))
+    };
+  }
+
+  /*
+   * PENGIRIMAN KE GOOGLE APPS SCRIPT
+   *
+   * Menggunakan form POST standar.
+   * Browser akan membuka halaman hasil Apps Script.
+   * Metode ini tidak membutuhkan CORS fetch.
+   */
+
+  function submitToDatabase(order) {
+    const form = document.createElement("form");
+
+    form.method = "POST";
+    form.action = API_URL;
+    form.target = "_self";
+    form.style.display = "none";
+
+    const input = document.createElement("input");
+
+    input.type = "hidden";
+    input.name = "payload";
+    input.value = JSON.stringify(order);
+
+    form.appendChild(input);
+    document.body.appendChild(form);
+
+    /*
+     * Tombol hanya dapat dipakai sekali
+     * selama navigasi berlangsung.
+     */
+
+    submitting = true;
+    updateSummary();
+
+    form.submit();
+  }
+
+  /*
+   * TOMBOL CHECKOUT
+   */
+
+  $("checkoutButton").addEventListener(
+    "click",
+    () => {
+      if (submitting || calculating) {
+        return;
+      }
+
+      const order = validateOrder();
+
+      if (!order) {
+        return;
+      }
+
+      const confirmed = confirm(
+        "Pesanan akan dicatat ke database Lambe Turah.\n\n" +
+        "Setelah berhasil dicatat, Anda akan diarahkan ke halaman untuk melanjutkan pengiriman pesanan melalui WhatsApp.\n\n" +
+        "Lanjutkan?"
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      submitToDatabase(order);
+    }
+  );
+
+  updatePaymentInfo();
+  updateSummary();
 
 })();
