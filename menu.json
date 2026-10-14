@@ -1,0 +1,274 @@
+[
+  {
+    "id": "hemat-telur",
+    "name": "Hemat Telur",
+    "price": 10000,
+    "category": "Paket Hemat",
+    "description": "Telur ceplok 1 pcs + nasi + bumbu",
+    "image": "images/hemat-telur.webp"
+  },
+  {
+    "id": "hemat-usus",
+    "name": "Hemat Usus",
+    "price": 11000,
+    "category": "Paket Hemat",
+    "description": "Usus 40 gr + nasi + bumbu",
+    "image": "images/hemat-usus.webp"
+  },
+  {
+    "id": "hemat-kulit",
+    "name": "Hemat Kulit",
+    "price": 12000,
+    "category": "Paket Hemat",
+    "description": "Kulit 55 gr + nasi + bumbu",
+    "image": "images/hemat-kulit.webp"
+  },
+  {
+    "id": "hemat-sayap",
+    "name": "Hemat Sayap",
+    "price": 12000,
+    "category": "Paket Hemat",
+    "description": "Sayap 1 pcs + nasi + bumbu",
+    "image": "images/hemat-sayap.webp"
+  },
+  {
+    "id": "kenyang-usus",
+    "name": "Kenyang Usus",
+    "price": 17000,
+    "category": "Paket Kenyang",
+    "description": "Usus 50 gr + nasi + es teh",
+    "image": "images/kenyang-usus.webp"
+  },
+  {
+    "id": "kenyang-kulit",
+    "name": "Kenyang Kulit",
+    "price": 17000,
+    "category": "Paket Kenyang",
+    "description": "Kulit 55 gr + nasi + es teh",
+    "image": "images/kenyang-kulit.webp"
+  },
+  {
+    "id": "kenyang-sayap",
+    "name": "Kenyang Sayap",
+    "price": 17000,
+    "category": "Paket Kenyang",
+    "description": "Sayap 1 pcs + nasi + es teh",
+    "image": "images/kenyang-sayap.webp"
+  },
+  {
+    "id": "ceker",
+    "name": "Ceker Lambe Turah",
+    "price": 15000,
+    "category": "Menu Satuan",
+    "description": "6 ceker",
+    "image": "images/ceker.webp"
+  },
+  {
+    "id": "ceker-tanpa-tulang",
+    "name": "Ceker Tanpa Tulang",
+    "price": 17000,
+    "category": "Menu Satuan",
+    "description": "100 gr",
+    "image": "images/ceker-tanpa-tulang.webp"
+  },
+  {
+    "id": "kerang-ijo",
+    "name": "Kerang Ijo",
+    "price": 15000,
+    "category": "Menu Satuan",
+    "description": "Porsi sesuai menu outlet",
+    "image": "images/kerang-ijo.webp"
+  },
+  {
+    "id": "usus",
+    "name": "Usus Lambe Turah",
+    "price": 10000,
+    "category": "Menu Satuan",
+    "description": "80 gr",
+    "image": "images/usus.webp"
+  },
+  {
+    "id": "kulit",
+    "name": "Kulit Lambe Turah",
+    "price": 13000,
+    "category": "Menu Satuan",
+    "description": "100 gr",
+    "image": "images/kulit.webp"
+  },
+  {
+    "id": "sayap",
+    "name": "Sayap Lambe Turah",
+    "price": 18000,
+    "category": "Menu Satuan",
+    "description": "3 pcs",
+    "image": "images/sayap.webp"
+  },
+  {
+    "id": "udang",
+    "name": "Udang Lambe Turah",
+    "price": 20000,
+    "category": "Menu Satuan",
+    "description": "100 gr",
+    "image": "images/udang.webp"
+  },
+  {
+    "id": "kerang-darah",
+    "name": "Kerang Darah",
+    "price": 15000,
+    "category": "Menu Satuan",
+    "description": "200 gr",
+    "image": "images/kerang-darah.webp"
+  },
+  {
+    "id": "mix-0",
+    "name": "Ceker Mix Usus",
+    "price": 16000,
+    "category": "Menu Mix",
+    "description": "Menu campuran",
+    "image": ""
+  },
+  {
+    "id": "mix-1",
+    "name": "Ceker Mix Sayap",
+    "price": 18000,
+    "category": "Menu Mix",
+    "description": "Menu campuran",
+    "image": ""
+  },
+  {
+    "id": "mix-2",
+    "name": "Ceker Mix Kerang Hijau",
+    "price": 16000,
+    "category": "Menu Mix",
+    "description": "Menu campuran",
+    "image": ""
+  },
+  {
+    "id": "mix-3",
+    "name": "Ceker Mix Kerang Darah",
+    "price": 16000,
+    "category": "Menu Mix",
+    "description": "Menu campuran",
+    "image": ""
+  },
+  {
+    "id": "mix-4",
+    "name": "Usus Mix Sayap",
+    "price": 16000,
+    "category": "Menu Mix",
+    "description": "Menu campuran",
+    "image": ""
+  },
+  {
+    "id": "mix-5",
+    "name": "Usus Mix Kerang Hijau",
+    "price": 16000,
+    "category": "Menu Mix",
+    "description": "Menu campuran",
+    "image": ""
+  },
+  {
+    "id": "mix-6",
+    "name": "Usus Mix Kerang Darah",
+    "price": 16000,
+    "category": "Menu Mix",
+    "description": "Menu campuran",
+    "image": ""
+  },
+  {
+    "id": "mix-7",
+    "name": "Sayap Mix Kerang Hijau",
+    "price": 17000,
+    "category": "Menu Mix",
+    "description": "Menu campuran",
+    "image": ""
+  },
+  {
+    "id": "mix-8",
+    "name": "Sayap Mix Kerang Darah",
+    "price": 17000,
+    "category": "Menu Mix",
+    "description": "Menu campuran",
+    "image": ""
+  },
+  {
+    "id": "mix-9",
+    "name": "Kerang Hijau Mix Kerang Darah",
+    "price": 16000,
+    "category": "Menu Mix",
+    "description": "Menu campuran",
+    "image": ""
+  },
+  {
+    "id": "mix-10",
+    "name": "Kulit Mix Ceker",
+    "price": 16000,
+    "category": "Menu Mix",
+    "description": "Menu campuran",
+    "image": ""
+  },
+  {
+    "id": "mix-11",
+    "name": "Kulit Mix Kerang Hijau",
+    "price": 16000,
+    "category": "Menu Mix",
+    "description": "Menu campuran",
+    "image": ""
+  },
+  {
+    "id": "air-mineral",
+    "name": "Air Mineral",
+    "price": 4000,
+    "category": "Minuman",
+    "description": "",
+    "image": "images/air-mineral.webp"
+  },
+  {
+    "id": "es-teh",
+    "name": "Teh",
+    "price": 4000,
+    "category": "Minuman",
+    "description": "Pilih es atau panas saat memesan",
+    "image": ""
+  },
+  {
+    "id": "es-teh-jumbo",
+    "name": "Es Teh Jumbo",
+    "price": 6000,
+    "category": "Minuman",
+    "description": "",
+    "image": "images/es-teh-jumbo.webp"
+  },
+  {
+    "id": "es-jeruk",
+    "name": "Jeruk",
+    "price": 6000,
+    "category": "Minuman",
+    "description": "Pilih es atau panas saat memesan",
+    "image": ""
+  },
+  {
+    "id": "kopi",
+    "name": "Kopi",
+    "price": 5000,
+    "category": "Minuman",
+    "description": "",
+    "image": "images/kopi.webp"
+  },
+  {
+    "id": "nasi",
+    "name": "Nasi",
+    "price": 5000,
+    "category": "Tambahan",
+    "description": "1 porsi; refill tidak berlaku untuk delivery",
+    "image": "images/nasi.webp"
+  },
+  {
+    "id": "kerupuk",
+    "name": "Kerupuk",
+    "price": 1500,
+    "category": "Tambahan",
+    "description": "",
+    "image": ""
+  }
+]
