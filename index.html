@@ -7,6 +7,16 @@
 <meta name="description" content="Pesan Delivery Ceker & Kerang Pedas Lambe Turah. Pilih menu, level kepedasan, outlet, dan pembayaran.">
 <title>Delivery Order | Lambe Turah</title>
 
+<!--
+  CEKER & KERANG PEDAS LAMBE TURAH
+  INDEX.HTML v9.0
+  DIRECT WHATSAPP CHECKOUT
+
+  Katalog dan keranjang tetap menggunakan menu.json.
+  GPS, ongkir, dan checkout ditangani delivery.js v9.0.
+  Tidak menggunakan Apps Script untuk checkout pelanggan.
+-->
+
 <style>
 :root {
   --red:#c7222a;
@@ -318,7 +328,10 @@ main {
   border-bottom:1px solid var(--line);
 }
 
-.cart-detail {flex:1;min-width:0}
+.cart-detail {
+  flex:1;
+  min-width:0;
+}
 
 .cart-detail strong {
   display:block;
@@ -442,8 +455,15 @@ main {
   font-weight:900;
 }
 
-.btn-dark {background:var(--dark);color:white}
-.btn-light {background:#efefef;color:#242424}
+.btn-dark {
+  background:var(--dark);
+  color:white;
+}
+
+.btn-light {
+  background:#efefef;
+  color:#242424;
+}
 
 .status {
   border-radius:12px;
@@ -555,6 +575,41 @@ main {
 .checkout:disabled {background:#bbb}
 
 /* ===================================
+   BANTUAN PELANGGAN v9.0
+   BUKAN TOMBOL MELAYANG
+=================================== */
+
+.checkout-instruction {
+  text-align:center;
+  margin:14px 0 0;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.75;
+}
+
+.customer-help {
+  text-align:center;
+  margin-top:19px;
+  padding-top:15px;
+  border-top:1px solid var(--line);
+  color:#777;
+  font-size:12px;
+  line-height:1.8;
+}
+
+.customer-help a {
+  display:inline-block;
+  color:#555;
+  font-weight:800;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+
+.customer-help a:hover {
+  color:var(--red);
+}
+
+/* ===================================
    FOOTER
 =================================== */
 
@@ -567,7 +622,8 @@ main {
 }
 
 /* ===================================
-   KERANJANG MELAYANG
+   KERANJANG MELAYANG BAWAH
+   TETAP DIPERTAHANKAN
 =================================== */
 
 .sticky {
@@ -767,13 +823,12 @@ main {
 }
 
 /* ===================================
-   TAMPILAN RESPONSIF
+   RESPONSIF
 =================================== */
 
 @media(max-width:850px) {
   .grid-products {
-    grid-template-columns:
-      repeat(3,minmax(0,1fr));
+    grid-template-columns:repeat(3,minmax(0,1fr));
   }
 }
 
@@ -788,8 +843,7 @@ main {
   }
 
   .grid-products {
-    grid-template-columns:
-      repeat(2,minmax(0,1fr));
+    grid-template-columns:repeat(2,minmax(0,1fr));
     gap:9px;
   }
 
@@ -841,7 +895,8 @@ main {
 
   <p>
     Pilih menu, atur sesuai selera,
-    cek ongkir, dan pesan melalui WhatsApp outlet.
+    cek ongkir, dan pesan langsung
+    melalui WhatsApp outlet.
   </p>
 
   <div class="hero-steps">
@@ -858,7 +913,7 @@ main {
     </span>
 
     <span class="hero-step">
-      <b>04</b> Pesan
+      <b>04</b> Kirim WhatsApp
     </span>
   </div>
 
@@ -946,11 +1001,9 @@ main {
   </p>
 
   <div id="cartItems">
-
     <div class="empty">
       Belum ada menu dipilih.
     </div>
-
   </div>
 
   <div class="summary-line total-line">
@@ -976,7 +1029,9 @@ main {
   <h2>📝 Data Pengiriman</h2>
 
   <p class="help">
-    Isi informasi penerima pesanan dengan benar.
+    Isi informasi penerima dengan benar.
+    Informasi ini akan dimasukkan ke
+    pesan WhatsApp outlet.
   </p>
 
   <div class="fields">
@@ -992,6 +1047,8 @@ main {
         type="text"
         autocomplete="name"
         placeholder="Nama pelanggan"
+        maxlength="100"
+        required
       >
 
     </div>
@@ -1008,6 +1065,8 @@ main {
         autocomplete="tel"
         inputmode="tel"
         placeholder="08xxxxxxxxxx"
+        maxlength="20"
+        required
       >
 
     </div>
@@ -1020,6 +1079,8 @@ main {
 
       <textarea
         id="customerAddress"
+        maxlength="500"
+        required
         placeholder="Alamat lengkap, nomor rumah, RT/RW, dan patokan"></textarea>
 
     </div>
@@ -1032,6 +1093,7 @@ main {
 
       <textarea
         id="customerNotes"
+        maxlength="400"
         placeholder="Contoh: bumbu dipisah, patokan rumah, atau permintaan khusus"></textarea>
 
     </div>
@@ -1050,8 +1112,8 @@ main {
 
   <p class="help">
     Gunakan lokasi saat Anda berada di titik
-    tujuan pengiriman agar admin dapat
-    menemukan alamat Anda.
+    tujuan pengiriman agar ongkir dapat
+    dihitung berdasarkan rute jalan.
   </p>
 
   <div class="geo-buttons">
@@ -1104,18 +1166,25 @@ main {
   </div>
 
   <div class="notice">
-    Ongkir estimasi:
-    sampai 2 km Rp2.000,
-    di atas 2–4 km Rp3.000,
-    di atas 4–6 km Rp5.000,
-    dan di atas 6–7 km Rp7.000.
+    <strong>Ketentuan Ongkir</strong>
 
-    Untuk jarak di atas 7–9 km,
-    ongkir Rp1.000/km dibulatkan ke atas,
-    dengan minimal belanja Rp75.000.
+    <div>
+      Sampai 2 km: Rp2.000.
+      Di atas 2–4 km: Rp3.000.
+      Di atas 4–6 km: Rp5.000.
+      Di atas 6–7 km: Rp7.000.
+    </div>
 
-    Lebih dari 9 km belum dilayani.
-    Ongkir akhir dikonfirmasi admin.
+    <div style="margin-top:7px">
+      Untuk jarak di atas 7–9 km,
+      ongkir Rp1.000/km dibulatkan ke atas,
+      dengan minimal belanja Rp75.000.
+    </div>
+
+    <div style="margin-top:7px">
+      Lebih dari 9 km belum dilayani.
+      Ongkir dan total akhir dikonfirmasi admin outlet.
+    </div>
   </div>
 
 </section>
@@ -1129,8 +1198,8 @@ main {
   <h2>💳 Ringkasan & Pembayaran</h2>
 
   <p class="help">
-    Periksa total estimasi dan pilih
-    metode pembayaran.
+    Periksa rincian pesanan sebelum
+    mengirimkannya melalui WhatsApp.
   </p>
 
   <div class="summary-line">
@@ -1205,7 +1274,7 @@ main {
 
         <small>
           QRIS dinamis dikirim admin
-          setelah konfirmasi
+          setelah pesanan dikonfirmasi
         </small>
       </span>
 
@@ -1216,10 +1285,15 @@ main {
   <div
     class="payment-note"
     id="paymentInfo">
-    💵 Pembayaran tunai saat pesanan diterima.
-    Mohon siapkan uang sesuai total
-    yang dikonfirmasi admin.
+    Pembayaran tunai saat pesanan diterima.
+    Total akhir dikonfirmasi admin outlet.
   </div>
+
+  <!--
+    Tombol ini diaktifkan otomatis
+    oleh delivery.js v9.0 setelah
+    lokasi dan ongkir valid.
+  -->
 
   <button
     id="checkoutButton"
@@ -1229,14 +1303,38 @@ main {
     Tentukan Lokasi Pengiriman Dahulu
   </button>
 
-  <p
-    class="help"
-    style="text-align:center;margin-top:14px">
-    Setelah pesanan dicatat, lanjutkan melalui
-    WhatsApp dan tekan Kirim agar admin
-    menerima rinciannya.
-    Pesanan belum otomatis dikonfirmasi.
+  <!-- ===================================
+       KETERANGAN CHECKOUT v9.0
+       TANPA DATABASE
+  =================================== -->
+
+  <p class="checkout-instruction">
+    Setelah WhatsApp terbuka,
+    <strong>tekan Kirim</strong>
+    agar admin menerima rincian pesanan Anda.
+    Pesanan akan diproses setelah
+    dikonfirmasi admin outlet.
   </p>
+
+  <!-- ===================================
+       BANTUAN PELANGGAN
+       TIDAK MELAYANG
+  =================================== -->
+
+  <div class="customer-help">
+
+    <div>
+      Kesulitan melakukan pemesanan?
+    </div>
+
+    <a
+      href="https://wa.me/6285232526003?text=Halo%20Kak%2C%20saya%20butuh%20bantuan%20pemesanan%20Delivery%20Order%20Lambe%20Turah."
+      target="_blank"
+      rel="noopener noreferrer">
+      Hubungi Bantuan
+    </a>
+
+  </div>
 
 </section>
 
@@ -1260,6 +1358,7 @@ main {
 
 <!-- ===================================
      KERANJANG MELAYANG BAWAH
+     BUKAN TOMBOL BANTUAN
 =================================== -->
 
 <div class="sticky">
@@ -2094,7 +2193,7 @@ document.querySelectorAll(
 });
 
 // ===================================
-// KONEKSI UNTUK DELIVERY.JS V8.0
+// KONEKSI UNTUK DELIVERY.JS v9.0
 // ===================================
 
 window.LAMBE_APP = {
@@ -2206,20 +2305,24 @@ initializeMenu();
 </script>
 
 <!-- ===================================
-     DELIVERY.JS V8.0 — STABLE CHECKOUT
+     DELIVERY.JS v9.0
+     DIRECT WHATSAPP CHECKOUT
 
      Mengelola:
-     - GPS dan ongkir
+     - GPS dan ongkir berbasis rute jalan
      - Pembayaran Cash / QRIS
-     - POST langsung ke Apps Script
-     - Halaman hasil pesanan
-     - WhatsApp Bantuan melayang
+     - Validasi pesanan
+     - Rincian WhatsApp otomatis
+     - Pengalihan langsung ke WhatsApp
 
-     Tombol bantuan otomatis dibuat
-     di delivery.js, bukan di HTML ini.
+     TIDAK:
+     - POST ke Google Apps Script
+     - Menyimpan pesanan ke database
+     - Menampilkan halaman konfirmasi Google
+     - Membuat tombol bantuan melayang
 =================================== -->
 
-<script src="./delivery.js?v=8.0"></script>
+<script src="./delivery.js?v=9.0"></script>
 
 </body>
 </html>
