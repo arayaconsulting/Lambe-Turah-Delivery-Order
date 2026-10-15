@@ -9,11 +9,11 @@
 
 <!--
   CEKER & KERANG PEDAS LAMBE TURAH
-  INDEX.HTML v9.0
+  INDEX.HTML v9.1
   DIRECT WHATSAPP CHECKOUT
 
-  Katalog dan keranjang tetap menggunakan menu.json.
-  GPS, ongkir, dan checkout ditangani delivery.js v9.0.
+  Katalog dan keranjang menggunakan menu.json.
+  GPS, ongkir, dan checkout ditangani delivery.js v9.1.
   Tidak menggunakan Apps Script untuk checkout pelanggan.
 -->
 
@@ -56,9 +56,7 @@ a:focus-visible {
 [hidden] {display:none!important}
 a {color:inherit}
 
-/* ===================================
-   HEADER
-=================================== */
+/* HEADER */
 
 .hero {
   padding:29px 16px 37px;
@@ -130,9 +128,7 @@ a {color:inherit}
 
 .hero-step b {color:var(--yellow)}
 
-/* ===================================
-   PANEL
-=================================== */
+/* PANEL */
 
 main {
   max-width:1080px;
@@ -162,9 +158,7 @@ main {
   margin:0 0 16px;
 }
 
-/* ===================================
-   OUTLET
-=================================== */
+/* OUTLET */
 
 .outlets {
   display:grid;
@@ -187,9 +181,7 @@ main {
   color:var(--red);
 }
 
-/* ===================================
-   MENU
-=================================== */
+/* MENU */
 
 .tabs {
   display:flex;
@@ -315,9 +307,7 @@ main {
   color:#777;
 }
 
-/* ===================================
-   KERANJANG
-=================================== */
+/* KERANJANG */
 
 .cart-item {
   display:flex;
@@ -366,9 +356,7 @@ main {
   font-weight:800;
 }
 
-/* ===================================
-   RINGKASAN
-=================================== */
+/* RINGKASAN */
 
 .summary-line {
   display:flex;
@@ -392,9 +380,7 @@ main {
   color:var(--red);
 }
 
-/* ===================================
-   FORMULIR
-=================================== */
+/* FORMULIR */
 
 .fields {
   display:grid;
@@ -436,9 +422,7 @@ main {
   border-color:var(--red);
 }
 
-/* ===================================
-   LOKASI
-=================================== */
+/* LOKASI */
 
 .geo-buttons {
   display:flex;
@@ -473,6 +457,8 @@ main {
   line-height:1.7;
   padding:14px;
   margin-top:14px;
+  overflow-wrap:anywhere;
+  white-space:normal;
 }
 
 .status.success {
@@ -504,9 +490,7 @@ main {
   margin-top:14px;
 }
 
-/* ===================================
-   PEMBAYARAN
-=================================== */
+/* PEMBAYARAN */
 
 .pay-grid {
   display:grid;
@@ -574,10 +558,7 @@ main {
 
 .checkout:disabled {background:#bbb}
 
-/* ===================================
-   BANTUAN PELANGGAN v9.0
-   BUKAN TOMBOL MELAYANG
-=================================== */
+/* BANTUAN PELANGGAN */
 
 .checkout-instruction {
   text-align:center;
@@ -609,9 +590,7 @@ main {
   color:var(--red);
 }
 
-/* ===================================
-   FOOTER
-=================================== */
+/* FOOTER */
 
 .footer {
   text-align:center;
@@ -621,10 +600,7 @@ main {
   line-height:1.7;
 }
 
-/* ===================================
-   KERANJANG MELAYANG BAWAH
-   TETAP DIPERTAHANKAN
-=================================== */
+/* KERANJANG MELAYANG */
 
 .sticky {
   position:fixed;
@@ -667,9 +643,7 @@ main {
   font-size:12px;
 }
 
-/* ===================================
-   MODAL PRODUK
-=================================== */
+/* MODAL PRODUK */
 
 .modal-backdrop {
   position:fixed;
@@ -822,9 +796,7 @@ main {
   font-weight:900;
 }
 
-/* ===================================
-   RESPONSIF
-=================================== */
+/* RESPONSIF */
 
 @media(max-width:850px) {
   .grid-products {
@@ -872,9 +844,7 @@ main {
 
 <body>
 
-<!-- ===================================
-     HEADER
-=================================== -->
+<!-- HEADER -->
 
 <header class="hero">
 
@@ -921,9 +891,7 @@ main {
 
 <main>
 
-<!-- ===================================
-     PILIH OUTLET
-=================================== -->
+<!-- PILIH OUTLET -->
 
 <section class="panel" id="outletSection">
 
@@ -955,9 +923,7 @@ main {
 
 </section>
 
-<!-- ===================================
-     PILIH MENU
-=================================== -->
+<!-- PILIH MENU -->
 
 <section class="panel" id="menuSection">
 
@@ -978,18 +944,13 @@ main {
     aria-label="Cari menu"
   >
 
-  <div
-    class="grid-products"
-    id="productGrid">
-  </div>
+  <div class="grid-products" id="productGrid"></div>
 
   <div id="productMessage"></div>
 
 </section>
 
-<!-- ===================================
-     KERANJANG PESANAN
-=================================== -->
+<!-- KERANJANG -->
 
 <section class="panel" id="cartSection">
 
@@ -1007,7 +968,6 @@ main {
   </div>
 
   <div class="summary-line total-line">
-
     <span>
       Subtotal Makanan & Minuman
     </span>
@@ -1015,14 +975,11 @@ main {
     <strong id="cartSubtotal">
       Rp0
     </strong>
-
   </div>
 
 </section>
 
-<!-- ===================================
-     DATA PELANGGAN
-=================================== -->
+<!-- DATA PENGIRIMAN -->
 
 <section class="panel" id="customerSection">
 
@@ -1037,7 +994,6 @@ main {
   <div class="fields">
 
     <div class="field">
-
       <label for="customerName">
         Nama Penerima *
       </label>
@@ -1050,11 +1006,9 @@ main {
         maxlength="100"
         required
       >
-
     </div>
 
     <div class="field">
-
       <label for="customerPhone">
         Nomor WhatsApp *
       </label>
@@ -1068,11 +1022,9 @@ main {
         maxlength="20"
         required
       >
-
     </div>
 
     <div class="field full">
-
       <label for="customerAddress">
         Alamat Pengiriman *
       </label>
@@ -1082,11 +1034,9 @@ main {
         maxlength="500"
         required
         placeholder="Alamat lengkap, nomor rumah, RT/RW, dan patokan"></textarea>
-
     </div>
 
     <div class="field full">
-
       <label for="customerNotes">
         Catatan Tambahan
       </label>
@@ -1095,16 +1045,13 @@ main {
         id="customerNotes"
         maxlength="400"
         placeholder="Contoh: bumbu dipisah, patokan rumah, atau permintaan khusus"></textarea>
-
     </div>
 
   </div>
 
 </section>
 
-<!-- ===================================
-     LOKASI DAN ONGKIR
-=================================== -->
+<!-- LOKASI DAN ONGKIR -->
 
 <section class="panel" id="locationSection">
 
@@ -1142,9 +1089,7 @@ main {
     Titik pengiriman belum ditentukan.
   </div>
 
-  <div
-    class="field"
-    style="margin-top:15px">
+  <div class="field" style="margin-top:15px">
 
     <label for="mapsLink">
       Tautan Google Maps
@@ -1166,6 +1111,7 @@ main {
   </div>
 
   <div class="notice">
+
     <strong>Ketentuan Ongkir</strong>
 
     <div>
@@ -1185,13 +1131,12 @@ main {
       Lebih dari 9 km belum dilayani.
       Ongkir dan total akhir dikonfirmasi admin outlet.
     </div>
+
   </div>
 
 </section>
 
-<!-- ===================================
-     RINGKASAN DAN PEMBAYARAN
-=================================== -->
+<!-- RINGKASAN DAN PEMBAYARAN -->
 
 <section class="panel" id="paymentSection">
 
@@ -1203,33 +1148,24 @@ main {
   </p>
 
   <div class="summary-line">
-
     <span>Subtotal Pesanan</span>
-
     <strong id="summarySubtotal">
       Rp0
     </strong>
-
   </div>
 
   <div class="summary-line">
-
     <span>Ongkir Estimasi</span>
-
     <strong id="summaryShipping">
       Belum dihitung
     </strong>
-
   </div>
 
   <div class="summary-line total-line">
-
     <span>Total Estimasi</span>
-
     <strong id="summaryTotal">
       Rp0
     </strong>
-
   </div>
 
   <h3 style="font-size:15px;margin:25px 0 0">
@@ -1251,7 +1187,6 @@ main {
 
       <span>
         <strong>Cash</strong>
-
         <small>
           Bayar tunai saat pesanan diterima
         </small>
@@ -1271,7 +1206,6 @@ main {
 
       <span>
         <strong>QRIS</strong>
-
         <small>
           QRIS dinamis dikirim admin
           setelah pesanan dikonfirmasi
@@ -1289,12 +1223,6 @@ main {
     Total akhir dikonfirmasi admin outlet.
   </div>
 
-  <!--
-    Tombol ini diaktifkan otomatis
-    oleh delivery.js v9.0 setelah
-    lokasi dan ongkir valid.
-  -->
-
   <button
     id="checkoutButton"
     class="checkout"
@@ -1303,11 +1231,6 @@ main {
     Tentukan Lokasi Pengiriman Dahulu
   </button>
 
-  <!-- ===================================
-       KETERANGAN CHECKOUT v9.0
-       TANPA DATABASE
-  =================================== -->
-
   <p class="checkout-instruction">
     Setelah WhatsApp terbuka,
     <strong>tekan Kirim</strong>
@@ -1315,11 +1238,6 @@ main {
     Pesanan akan diproses setelah
     dikonfirmasi admin outlet.
   </p>
-
-  <!-- ===================================
-       BANTUAN PELANGGAN
-       TIDAK MELAYANG
-  =================================== -->
 
   <div class="customer-help">
 
@@ -1338,9 +1256,7 @@ main {
 
 </section>
 
-<!-- ===================================
-     FOOTER
-=================================== -->
+<!-- FOOTER -->
 
 <footer class="footer">
 
@@ -1356,10 +1272,7 @@ main {
 
 </main>
 
-<!-- ===================================
-     KERANJANG MELAYANG BAWAH
-     BUKAN TOMBOL BANTUAN
-=================================== -->
+<!-- KERANJANG MELAYANG -->
 
 <div class="sticky">
 
@@ -1385,9 +1298,7 @@ main {
 
 </div>
 
-<!-- ===================================
-     MODAL PRODUK
-=================================== -->
+<!-- MODAL PRODUK -->
 
 <div
   class="modal-backdrop"
@@ -1485,15 +1396,11 @@ main {
 
 </div>
 
-<!-- ===================================
-     KONFIGURASI WEBSITE
-=================================== -->
+<!-- KONFIGURASI WEBSITE -->
 
 <script src="./config.js"></script>
 
-<!-- ===================================
-     SISTEM KATALOG DAN KERANJANG
-=================================== -->
+<!-- KATALOG DAN KERANJANG -->
 
 <script>
 "use strict";
@@ -1543,9 +1450,7 @@ let cart = [];
 let selectedProduct = null;
 let selectedQuantity = 1;
 
-// ===================================
 // PRODUK
-// ===================================
 
 function productById(id) {
   return menuData.find(
@@ -1576,9 +1481,7 @@ function productVariantType(product) {
   return "none";
 }
 
-// ===================================
 // HITUNG SUBTOTAL
-// ===================================
 
 function getSubtotal() {
   return cart.reduce(
@@ -1603,9 +1506,7 @@ function getCartCount() {
   );
 }
 
-// ===================================
 // SIMPAN KERANJANG
-// ===================================
 
 function saveCart() {
   try {
@@ -1627,9 +1528,7 @@ function saveCart() {
   );
 }
 
-// ===================================
 // TAMPILKAN KATEGORI
-// ===================================
 
 function drawCategories() {
   el("categoryTabs").innerHTML =
@@ -1647,9 +1546,7 @@ function drawCategories() {
     `).join("");
 }
 
-// ===================================
 // VALIDASI PATH GAMBAR
-// ===================================
 
 function safeImagePath(image) {
   const path = String(image || "");
@@ -1660,9 +1557,7 @@ function safeImagePath(image) {
   ) ? path : "";
 }
 
-// ===================================
 // TAMPILKAN PRODUK
-// ===================================
 
 function drawProducts() {
   const query =
@@ -1758,9 +1653,7 @@ function drawProducts() {
       `;
 }
 
-// ===================================
 // GAMBAR KERANJANG
-// ===================================
 
 function drawCart() {
   cart = cart.filter(item =>
@@ -1843,9 +1736,7 @@ function drawCart() {
     formatRp(getSubtotal());
 }
 
-// ===================================
 // HITUNG TOTAL DI MODAL
-// ===================================
 
 function updateModalTotal() {
   if (!selectedProduct) return;
@@ -1860,9 +1751,7 @@ function updateModalTotal() {
     );
 }
 
-// ===================================
 // BUKA MODAL PRODUK
-// ===================================
 
 function openProductModal(id) {
   const product = productById(id);
@@ -1964,9 +1853,7 @@ function openProductModal(id) {
   document.body.style.overflow = "hidden";
 }
 
-// ===================================
 // TUTUP MODAL
-// ===================================
 
 function closeProductModal() {
   el("productModal").hidden = true;
@@ -1976,9 +1863,7 @@ function closeProductModal() {
   selectedProduct = null;
 }
 
-// ===================================
 // TAMBAH PRODUK KE KERANJANG
-// ===================================
 
 function confirmProduct() {
   if (!selectedProduct) return;
@@ -2009,9 +1894,7 @@ function confirmProduct() {
   saveCart();
 }
 
-// ===================================
 // KONTROL JUMLAH DI MODAL
-// ===================================
 
 el("plusQty").addEventListener(
   "click",
@@ -2043,9 +1926,7 @@ el("minusQty").addEventListener(
   }
 );
 
-// ===================================
 // EVENT MODAL
-// ===================================
 
 el("confirmAdd").addEventListener(
   "click",
@@ -2080,9 +1961,7 @@ document.addEventListener(
   }
 );
 
-// ===================================
 // EVENT TAMBAH PRODUK
-// ===================================
 
 el("productGrid").addEventListener(
   "click",
@@ -2098,9 +1977,7 @@ el("productGrid").addEventListener(
   }
 );
 
-// ===================================
 // EVENT KATEGORI
-// ===================================
 
 el("categoryTabs").addEventListener(
   "click",
@@ -2118,18 +1995,14 @@ el("categoryTabs").addEventListener(
   }
 );
 
-// ===================================
 // PENCARIAN MENU
-// ===================================
 
 el("menuSearch").addEventListener(
   "input",
   drawProducts
 );
 
-// ===================================
 // PERBARUI JUMLAH KERANJANG
-// ===================================
 
 el("cartItems").addEventListener(
   "click",
@@ -2155,9 +2028,7 @@ el("cartItems").addEventListener(
   }
 );
 
-// ===================================
 // GANTI OUTLET
-// ===================================
 
 document.querySelectorAll(
   "[data-outlet]"
@@ -2192,9 +2063,7 @@ document.querySelectorAll(
   );
 });
 
-// ===================================
-// KONEKSI UNTUK DELIVERY.JS v9.0
-// ===================================
+// KONEKSI UNTUK DELIVERY.JS v9.1
 
 window.LAMBE_APP = {
   getOutlet: () => selectedOutlet,
@@ -2209,9 +2078,7 @@ window.LAMBE_APP = {
   formatRp
 };
 
-// ===================================
 // AMBIL MENU.JSON
-// ===================================
 
 async function initializeMenu() {
   try {
@@ -2304,25 +2171,21 @@ initializeMenu();
 
 </script>
 
-<!-- ===================================
-     DELIVERY.JS v9.0
-     DIRECT WHATSAPP CHECKOUT
+<!--
+  DELIVERY.JS v9.1
+  DIRECT WHATSAPP CHECKOUT
 
-     Mengelola:
-     - GPS dan ongkir berbasis rute jalan
-     - Pembayaran Cash / QRIS
-     - Validasi pesanan
-     - Rincian WhatsApp otomatis
-     - Pengalihan langsung ke WhatsApp
+  - GPS dan ongkir berbasis rute jalan
+  - Panduan jika akses GPS ditolak
+  - Pembayaran Cash / QRIS
+  - Validasi pesanan
+  - Rincian WhatsApp otomatis
+  - Pengalihan langsung ke WhatsApp
 
-     TIDAK:
-     - POST ke Google Apps Script
-     - Menyimpan pesanan ke database
-     - Menampilkan halaman konfirmasi Google
-     - Membuat tombol bantuan melayang
-=================================== -->
+  Tidak menyimpan pesanan ke database.
+-->
 
-<script src="./delivery.js?v=9.0"></script>
+<script src="./delivery.js?v=9.1"></script>
 
 </body>
 </html>
