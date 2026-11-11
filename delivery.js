@@ -1,27 +1,31 @@
-
 (() => {
   "use strict";
 
   /*
    * CEKER & KERANG PEDAS LAMBE TURAH
-   * DELIVERY.JS v9.3
+   * DELIVERY.JS v9.3.1
    *
    * CHECKOUT LANGSUNG KE WHATSAPP
    * TANPA GOOGLE APPS SCRIPT
    * TANPA DATABASE
    *
-   * PEMBARUAN v9.3:
-   * - Jam Delivery: 10.00–20.00 WIB.
-   * - Jam Takeaway: 10.00–21.30 WIB.
-   * - Katalog dan keranjang tetap tersedia 24 jam.
-   * - Checkout ditutup otomatis di luar jam layanan.
-   * - Informasi jam operasional mengikuti jenis pesanan.
-   * - Menawarkan Takeaway ketika Delivery sudah tutup.
-   * - Jam dicek ulang sebelum WhatsApp dibuka.
+   * PEMBARUAN v9.3.1:
+   * - Ongkir Rp1.000 per kilometer.
+   * - Pecahan jarak <= 0,5 km dibulatkan ke bawah.
+   * - Pecahan jarak > 0,5 km dibulatkan ke atas.
+   * - Minimal tarif 1 km = Rp1.000.
+   * - Minimal belanja Rp75.000 jika jarak
+   *   setelah pembulatan lebih dari 7 km.
+   * - Maksimal pengiriman 9 km berdasarkan
+   *   jarak rute sebenarnya.
    *
-   * Memerlukan window.LAMBE_APP dari index.html:
-   * getOutlet(), getMode(), getCart(),
-   * getProduct(id), getSubtotal().
+   * FITUR v9.3 TETAP:
+   * - Delivery: 10.00–20.00 WIB.
+   * - Takeaway: 10.00–21.30 WIB.
+   * - Katalog tersedia 24 jam.
+   * - Checkout ditutup di luar jam layanan.
+   * - GPS dan perhitungan rute jalan.
+   * - Checkout langsung ke WhatsApp outlet.
    */
 
   // ==========================================
@@ -45,11 +49,15 @@
   };
 
   // ==========================================
-  // KONFIGURASI ONGKIR
+  // KONFIGURASI ONGKIR v9.3.1
   // ==========================================
 
   const MAX_DISTANCE_KM = 9;
+
+  const SHIPPING_RATE_PER_KM = 1000;
+
   const MINIMUM_ABOVE_7_KM = 75000;
+
   const ROUTE_TIMEOUT_MS = 15000;
 
   // ==========================================
@@ -72,7 +80,6 @@
     }
   };
 
-  // Periksa ulang setiap 15 detik.
   const HOURS_REFRESH_MS = 15000;
 
   // ==========================================
@@ -286,18 +293,6 @@
   // PESAN JAM OPERASIONAL
   // ==========================================
 
-  /*
-   * Elemen informasi jam dibuat otomatis.
-   *
-   * Dengan demikian delivery.js v9.3
-   * tetap bisa digunakan pada index.html
-   * v9.2 selama masa pergantian file.
-   *
-   * Pada index.html v9.3 nanti,
-   * elemen dengan ID serviceHoursStatus
-   * bisa disediakan secara permanen.
-   */
-
   function ensureHoursElement() {
     let element =
       $("serviceHoursStatus");
@@ -429,24 +424,84 @@
   }
 
   // ==========================================
-  // PERHITUNGAN ONGKIR
+  // PEMBULATAN JARAK v9.3.1
+  // ==========================================
+
+  /*
+   * ATURAN:
+   *
+   * 1,5 km => 1 km
+   * 1,6 km => 2 km
+   * 2,5 km => 2 km
+   * 2,6 km => 3 km
+   * 7,5 km => 7 km
+   * 7,6 km => 8 km
+   *
+   * Minimal tarif adalah 1 km.
+   *
+   * Menggunakan ceil(km - 0.5)
+   * agar tepat 0,5 dibulatkan ke bawah.
+   */
+
+  function roundedDistance(km) {
+    if (
+      !Number.isFinite(km) ||
+      km < 0
+    ) {
+      return null;
+    }
+
+    return Math.max(
+      1,
+      Math.ceil(km - 0.5)
+    );
+  }
+
+  // ==========================================
+  // ONGKIR BARU RP1.000 / KM
   // ==========================================
 
   function deliveryFee(km) {
-    if (km <= 2) return 2000;
-    if (km <= 4) return 3000;
-    if (km <= 6) return 5000;
-    if (km <= 7) return 7000;
-
-    if (km <= MAX_DISTANCE_KM) {
-      return Math.ceil(km) * 1000;
+    if (
+      !Number.isFinite(km) ||
+      km < 0 ||
+      km > MAX_DISTANCE_KM
+    ) {
+      return null;
     }
 
-    return null;
+    const distance =
+      roundedDistance(km);
+
+    if (distance === null) {
+      return null;
+    }
+
+    return distance *
+      SHIPPING_RATE_PER_KM;
   }
 
+  // ==========================================
+  // MINIMAL BELANJA
+  // ==========================================
+
+  /*
+   * Minimal Rp75.000 berlaku apabila
+   * jarak hasil pembulatan > 7 km.
+   *
+   * 7,5 km => 7 km => tanpa minimum.
+   * 7,6 km => 8 km => minimum Rp75.000.
+   */
+
   function minimumSubtotal(km) {
-    return km > 7
+    const distance =
+      roundedDistance(km);
+
+    if (distance === null) {
+      return 0;
+    }
+
+    return distance > 7
       ? MINIMUM_ABOVE_7_KM
       : 0;
   }
@@ -537,10 +592,23 @@
             currentRoute.km
           );
 
+        const rounded =
+          roundedDistance(
+            currentRoute.km
+          );
+
+        // Informasi menampilkan jarak asli,
+        // jarak tarif setelah pembulatan,
+        // dan ongkir terbaru.
+
         let details =
-          "Jarak rute estimasi: " +
+          "Jarak rute: " +
           currentRoute.km.toFixed(2) +
-          " km | Ongkir: " +
+          " km" +
+          " | Jarak tarif: " +
+          rounded +
+          " km" +
+          " | Ongkir: " +
           (
             fee === null
               ? "Di luar jangkauan"
@@ -565,8 +633,6 @@
           details;
       }
     }
-
-    // Jam layanan selalu menjadi syarat checkout.
 
     const hoursStatus =
       serviceStatus();
@@ -775,6 +841,9 @@
       const fee =
         deliveryFee(km);
 
+      const rounded =
+        roundedDistance(km);
+
       route = {
         outlet: requestedOutlet,
         latitude:
@@ -782,17 +851,22 @@
         longitude:
           requestedLocation.longitude,
         km,
+        roundedKm: rounded,
         fee
       };
+
+      // STATUS GPS MENAMPILKAN TARIF BARU
 
       setLocationStatus(
         fee === null
           ? "Jarak " +
             km.toFixed(2) +
             " km di luar jangkauan maksimal 9 km."
-          : "Lokasi ditemukan. Jarak " +
+          : "Lokasi ditemukan. Jarak rute " +
             km.toFixed(2) +
-            " km, ongkir estimasi " +
+            " km, dihitung " +
+            rounded +
+            " km. Ongkir " +
             rupiah(fee) +
             ".",
         fee === null
@@ -1146,7 +1220,6 @@
     const takeaway =
       isTakeaway();
 
-    // Pemeriksaan jam pertama.
     if (!canCheckoutNow()) {
       updateSummary();
 
@@ -1466,6 +1539,9 @@
       km: takeaway
         ? null
         : route.km,
+      roundedKm: takeaway
+        ? null
+        : roundedDistance(route.km),
       fee,
       total: subtotal + fee,
       mapsLink: takeaway
@@ -1603,9 +1679,16 @@
         "Lokasi Google Maps:",
         order.mapsLink,
 
-        "Jarak estimasi: " +
+        "Jarak rute: " +
           order.km.toFixed(2) +
           " km",
+
+        "Jarak tarif: " +
+          order.roundedKm +
+          " km",
+
+        "Tarif ongkir: " +
+          rupiah(order.fee),
 
         "Catatan: " +
           order.notes,
@@ -1654,7 +1737,6 @@
         return;
       }
 
-      // Pemeriksaan jam sebelum validasi.
       if (!canCheckoutNow()) {
         updateSummary();
 
@@ -1687,7 +1769,10 @@
             order.outlet.name +
             "\nPerkiraan waktu: " +
             order.pickup
-          : "Ongkir estimasi: " +
+          : "Jarak tarif: " +
+            order.roundedKm +
+            " km" +
+            "\nOngkir: " +
             rupiah(order.fee);
 
       const ok =
@@ -1729,10 +1814,8 @@
 
       if (!ok) return;
 
-      // Pemeriksaan jam terakhir setelah
-      // dialog konfirmasi ditutup.
-      // Mencegah checkout jika waktu
-      // melewati jam tutup saat dialog tampil.
+      // Pemeriksaan jam terakhir
+      // setelah dialog konfirmasi.
 
       if (!canCheckoutNow()) {
         updateSummary();
@@ -1756,10 +1839,6 @@
       preparingWhatsApp = true;
 
       updateSummary();
-
-      // Buka WhatsApp di tab yang sama
-      // agar lebih kompatibel dengan
-      // browser iPhone dan Android.
 
       window.location.assign(url);
     }
