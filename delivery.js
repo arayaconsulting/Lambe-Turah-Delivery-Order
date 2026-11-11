@@ -3,29 +3,27 @@
 
   /*
    * CEKER & KERANG PEDAS LAMBE TURAH
-   * DELIVERY.JS v9.3.1
+   * DELIVERY.JS v9.3.1 — FINAL
    *
    * CHECKOUT LANGSUNG KE WHATSAPP
    * TANPA GOOGLE APPS SCRIPT
    * TANPA DATABASE
    *
-   * PEMBARUAN v9.3.1:
-   * - Ongkir Rp1.000 per kilometer.
-   * - Pecahan jarak <= 0,5 km dibulatkan ke bawah.
-   * - Pecahan jarak > 0,5 km dibulatkan ke atas.
-   * - Minimal tarif 1 km = Rp1.000.
-   * - Minimal belanja Rp75.000 jika jarak
-   *   setelah pembulatan lebih dari 7 km.
-   * - Maksimal pengiriman 9 km berdasarkan
-   *   jarak rute sebenarnya.
+   * ONGKIR:
+   * - Rp1.000 per kilometer
+   * - Tarif minimal Rp1.000
+   * - Pecahan <= 0,5 km dibulatkan ke bawah
+   * - Pecahan > 0,5 km dibulatkan ke atas
+   * - Minimal belanja Rp75.000 jika jarak tarif > 7 km
+   * - Maksimal rute sebenarnya 9 km
    *
-   * FITUR v9.3 TETAP:
-   * - Delivery: 10.00–20.00 WIB.
-   * - Takeaway: 10.00–21.30 WIB.
-   * - Katalog tersedia 24 jam.
-   * - Checkout ditutup di luar jam layanan.
-   * - GPS dan perhitungan rute jalan.
-   * - Checkout langsung ke WhatsApp outlet.
+   * OPERASIONAL:
+   * - Delivery 10.00–20.00 WIB
+   * - Takeaway 10.00–21.30 WIB
+   * - Katalog dan keranjang tersedia 24 jam
+   * - Checkout otomatis ditutup di luar jam layanan
+   *
+   * KOMPATIBEL DENGAN INDEX.HTML v9.4.1
    */
 
   // ==========================================
@@ -49,19 +47,16 @@
   };
 
   // ==========================================
-  // KONFIGURASI ONGKIR v9.3.1
+  // KONFIGURASI ONGKIR
   // ==========================================
 
   const MAX_DISTANCE_KM = 9;
-
   const SHIPPING_RATE_PER_KM = 1000;
-
   const MINIMUM_ABOVE_7_KM = 75000;
-
   const ROUTE_TIMEOUT_MS = 15000;
 
   // ==========================================
-  // JAM OPERASIONAL WIB
+  // JAM OPERASIONAL
   // ==========================================
 
   const TIME_ZONE = "Asia/Jakarta";
@@ -87,7 +82,6 @@
   // ==========================================
 
   const app = window.LAMBE_APP;
-
   const $ = id => document.getElementById(id);
 
   const requiredFunctions = [
@@ -129,9 +123,7 @@
     "pickupTime"
   ];
 
-  if (
-    requiredIds.some(id => !$(id))
-  ) {
+  if (requiredIds.some(id => !$(id))) {
     console.error(
       "Ada elemen checkout yang tidak ditemukan pada index.html."
     );
@@ -241,16 +233,10 @@
   }
 
   function serviceStatus(mode = currentMode()) {
-    const hours =
-      SERVICE_HOURS[mode];
+    const hours = SERVICE_HOURS[mode];
+    const minutes = currentWIBMinutes();
 
-    const minutes =
-      currentWIBMinutes();
-
-    if (
-      !hours ||
-      minutes === null
-    ) {
+    if (!hours || minutes === null) {
       return {
         open: false,
         reason: "unknown",
@@ -290,22 +276,19 @@
   }
 
   // ==========================================
-  // PESAN JAM OPERASIONAL
+  // INFORMASI JAM OPERASIONAL
   // ==========================================
 
   function ensureHoursElement() {
-    let element =
-      $("serviceHoursStatus");
+    let element = $("serviceHoursStatus");
 
     if (element) {
       return element;
     }
 
-    element =
-      document.createElement("div");
+    element = document.createElement("div");
 
-    element.id =
-      "serviceHoursStatus";
+    element.id = "serviceHoursStatus";
 
     element.setAttribute(
       "role",
@@ -323,8 +306,7 @@
     element.style.fontSize = "12px";
     element.style.lineHeight = "1.7";
 
-    const modeHelp =
-      $("modeHelp");
+    const modeHelp = $("modeHelp");
 
     if (modeHelp) {
       modeHelp.insertAdjacentElement(
@@ -342,17 +324,11 @@
   }
 
   function updateHoursInfo() {
-    const element =
-      ensureHoursElement();
+    const element = ensureHoursElement();
 
-    const mode =
-      currentMode();
-
-    const status =
-      serviceStatus(mode);
-
-    const hours =
-      SERVICE_HOURS[mode];
+    const mode = currentMode();
+    const status = serviceStatus(mode);
+    const hours = SERVICE_HOURS[mode];
 
     const modeName =
       mode === "delivery"
@@ -372,6 +348,7 @@
         "Jam layanan: " +
         hours.label +
         ".";
+
     } else {
       background = "#fff6e5";
       color = "#775615";
@@ -385,9 +362,8 @@
           "pukul 10.00 WIB. " +
           "Kakak tetap bisa melihat menu " +
           "dan menyiapkan keranjang.";
-      } else if (
-        status.reason === "after"
-      ) {
+
+      } else if (status.reason === "after") {
         if (
           mode === "delivery" &&
           serviceStatus("takeaway").open
@@ -400,6 +376,7 @@
             "Silakan pilih Takeaway " +
             "jika ingin mengambil sendiri " +
             "pesanan di outlet.";
+
         } else {
           message =
             "⏰ Pemesanan " +
@@ -410,6 +387,7 @@
             "Menu tetap bisa dilihat " +
             "dan dimasukkan ke keranjang.";
         }
+
       } else {
         message =
           "Jam layanan belum dapat diperiksa. " +
@@ -428,19 +406,20 @@
   // ==========================================
 
   /*
-   * ATURAN:
+   * Contoh:
    *
+   * 0,8 km => 1 km
    * 1,5 km => 1 km
    * 1,6 km => 2 km
    * 2,5 km => 2 km
    * 2,6 km => 3 km
+   * 4,6 km => 5 km
    * 7,5 km => 7 km
    * 7,6 km => 8 km
+   * 8,6 km => 9 km
    *
-   * Minimal tarif adalah 1 km.
-   *
-   * Menggunakan ceil(km - 0.5)
-   * agar tepat 0,5 dibulatkan ke bawah.
+   * Nilai tepat x,5 dibulatkan ke bawah.
+   * Tarif minimum tetap 1 km.
    */
 
   function roundedDistance(km) {
@@ -458,7 +437,7 @@
   }
 
   // ==========================================
-  // ONGKIR BARU RP1.000 / KM
+  // TARIF ONGKIR RP1.000 PER KM
   // ==========================================
 
   function deliveryFee(km) {
@@ -470,15 +449,13 @@
       return null;
     }
 
-    const distance =
-      roundedDistance(km);
+    const distance = roundedDistance(km);
 
     if (distance === null) {
       return null;
     }
 
-    return distance *
-      SHIPPING_RATE_PER_KM;
+    return distance * SHIPPING_RATE_PER_KM;
   }
 
   // ==========================================
@@ -486,16 +463,15 @@
   // ==========================================
 
   /*
-   * Minimal Rp75.000 berlaku apabila
-   * jarak hasil pembulatan > 7 km.
+   * 7,5 km => tarif 7 km.
+   * Tidak terkena minimal belanja Rp75.000.
    *
-   * 7,5 km => 7 km => tanpa minimum.
-   * 7,6 km => 8 km => minimum Rp75.000.
+   * 7,6 km => tarif 8 km.
+   * Minimal belanja Rp75.000 berlaku.
    */
 
   function minimumSubtotal(km) {
-    const distance =
-      roundedDistance(km);
+    const distance = roundedDistance(km);
 
     if (distance === null) {
       return 0;
@@ -505,6 +481,10 @@
       ? MINIMUM_ABOVE_7_KM
       : 0;
   }
+
+  // ==========================================
+  // VALIDASI RUTE
+  // ==========================================
 
   function validRoute() {
     return !!(
@@ -520,8 +500,7 @@
     message,
     kind = ""
   ) {
-    const element =
-      $("locationStatus");
+    const element = $("locationStatus");
 
     element.className =
       "status" +
@@ -535,8 +514,7 @@
   // ==========================================
 
   function updatePaymentInfo() {
-    const takeaway =
-      isTakeaway();
+    const takeaway = isTakeaway();
 
     $("paymentInfo").textContent =
       selectedPayment() === "QRIS"
@@ -551,11 +529,8 @@
   // ==========================================
 
   function updateSummary() {
-    const subtotal =
-      cartSubtotal();
-
-    const takeaway =
-      isTakeaway();
+    const subtotal = cartSubtotal();
+    const takeaway = isTakeaway();
 
     const currentRoute =
       validRoute()
@@ -586,20 +561,13 @@
       if (!currentRoute) {
         $("distanceSummary").textContent =
           "Jarak dan ongkir menunggu lokasi pengiriman.";
+
       } else {
         const minimum =
-          minimumSubtotal(
-            currentRoute.km
-          );
+          minimumSubtotal(currentRoute.km);
 
         const rounded =
-          roundedDistance(
-            currentRoute.km
-          );
-
-        // Informasi menampilkan jarak asli,
-        // jarak tarif setelah pembulatan,
-        // dan ongkir terbaru.
+          roundedDistance(currentRoute.km);
 
         let details =
           "Jarak rute: " +
@@ -623,9 +591,7 @@
           if (subtotal < minimum) {
             details +=
               " | Kekurangan: " +
-              rupiah(
-                minimum - subtotal
-              );
+              rupiah(minimum - subtotal);
           }
         }
 
@@ -634,32 +600,31 @@
       }
     }
 
-    const hoursStatus =
-      serviceStatus();
+    const hoursStatus = serviceStatus();
 
     if (preparingWhatsApp) {
       checkout.disabled = true;
       checkout.textContent =
         "Membuka WhatsApp...";
+
     } else if (!hoursStatus.open) {
       checkout.disabled = true;
 
-      if (
-        hoursStatus.reason === "before"
-      ) {
+      if (hoursStatus.reason === "before") {
         checkout.textContent =
           "Pemesanan Dibuka Pukul 10.00 WIB";
-      } else if (
-        hoursStatus.reason === "after"
-      ) {
+
+      } else if (hoursStatus.reason === "after") {
         checkout.textContent =
           "Pemesanan " +
           (takeaway ? "Takeaway" : "Delivery") +
           " Sudah Ditutup";
+
       } else {
         checkout.textContent =
           "Jam Layanan Belum Tersedia";
       }
+
     } else if (
       !takeaway &&
       calculating
@@ -667,6 +632,7 @@
       checkout.disabled = true;
       checkout.textContent =
         "Menghitung Ongkir...";
+
     } else if (
       !takeaway &&
       !currentRoute
@@ -674,6 +640,7 @@
       checkout.disabled = true;
       checkout.textContent =
         "Tentukan Lokasi Pengiriman Dahulu";
+
     } else if (
       !takeaway &&
       fee === null
@@ -681,27 +648,23 @@
       checkout.disabled = true;
       checkout.textContent =
         "Di Luar Jangkauan Delivery";
-    } else if (
-      subtotal <= 0
-    ) {
+
+    } else if (subtotal <= 0) {
       checkout.disabled = true;
       checkout.textContent =
         "Pilih Menu Terlebih Dahulu";
+
     } else if (
       !takeaway &&
-      subtotal <
-        minimumSubtotal(
-          currentRoute.km
-        )
+      subtotal < minimumSubtotal(currentRoute.km)
     ) {
       checkout.disabled = true;
       checkout.textContent =
         "Minimal Order " +
         rupiah(
-          minimumSubtotal(
-            currentRoute.km
-          )
+          minimumSubtotal(currentRoute.km)
         );
+
     } else {
       checkout.disabled = false;
 
@@ -741,8 +704,7 @@
 
     invalidateRoute();
 
-    const sequence =
-      requestSequence;
+    const sequence = requestSequence;
 
     if (!location) {
       setLocationStatus(
@@ -752,8 +714,7 @@
       return;
     }
 
-    const outlet =
-      selectedOutlet();
+    const outlet = selectedOutlet();
 
     if (!outlet) {
       setLocationStatus(
@@ -767,19 +728,16 @@
       ...location
     };
 
-    const requestedOutlet =
-      outletKey();
+    const requestedOutlet = outletKey();
 
     calculating = true;
-
     updateSummary();
 
     setLocationStatus(
       "Menghitung jarak melalui rute jalan..."
     );
 
-    const controller =
-      new AbortController();
+    const controller = new AbortController();
 
     routeController = controller;
 
@@ -814,8 +772,7 @@
         );
       }
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
       const meters =
         data?.routes?.[0]?.distance;
@@ -829,33 +786,22 @@
         );
       }
 
-      if (
-        sequence !== requestSequence
-      ) {
+      if (sequence !== requestSequence) {
         return;
       }
 
-      const km =
-        meters / 1000;
-
-      const fee =
-        deliveryFee(km);
-
-      const rounded =
-        roundedDistance(km);
+      const km = meters / 1000;
+      const fee = deliveryFee(km);
+      const rounded = roundedDistance(km);
 
       route = {
         outlet: requestedOutlet,
-        latitude:
-          requestedLocation.latitude,
-        longitude:
-          requestedLocation.longitude,
+        latitude: requestedLocation.latitude,
+        longitude: requestedLocation.longitude,
         km,
         roundedKm: rounded,
         fee
       };
-
-      // STATUS GPS MENAMPILKAN TARIF BARU
 
       setLocationStatus(
         fee === null
@@ -875,9 +821,7 @@
       );
 
     } catch (error) {
-      if (
-        sequence !== requestSequence
-      ) {
+      if (sequence !== requestSequence) {
         return;
       }
 
@@ -896,9 +840,7 @@
     } finally {
       clearTimeout(timeout);
 
-      if (
-        sequence === requestSequence
-      ) {
+      if (sequence === requestSequence) {
         calculating = false;
         routeController = null;
         updateSummary();
@@ -928,9 +870,7 @@
         return;
       }
 
-      if (
-        !window.isSecureContext
-      ) {
+      if (!window.isSecureContext) {
         setLocationStatus(
           "Layanan lokasi membutuhkan HTTPS. Buka website melalui alamat resminya.",
           "error"
@@ -938,8 +878,7 @@
         return;
       }
 
-      const sequence =
-        ++gpsSequence;
+      const sequence = ++gpsSequence;
 
       invalidateRoute();
 
@@ -1003,9 +942,7 @@
           let message =
             "Lokasi belum dapat diperoleh. Silakan coba kembali.";
 
-          if (
-            error.code === 1
-          ) {
+          if (error.code === 1) {
             message =
               "Lokasi tidak dapat diakses. " +
               "Jika membuka website melalui Instagram, " +
@@ -1019,17 +956,13 @@
               "periksa izin lokasi, lalu coba lagi.";
           }
 
-          if (
-            error.code === 2
-          ) {
+          if (error.code === 2) {
             message =
               "GPS belum tersedia. " +
               "Coba di tempat lebih terbuka.";
           }
 
-          if (
-            error.code === 3
-          ) {
+          if (error.code === 3) {
             message =
               "Pengambilan GPS terlalu lama. " +
               "Silakan coba kembali.";
@@ -1087,6 +1020,7 @@
 
       if (location) {
         calculateRoute();
+
       } else {
         invalidateRoute();
 
@@ -1107,7 +1041,6 @@
       gpsSequence += 1;
 
       invalidateRoute();
-
       updatePaymentInfo();
 
       if (
@@ -1115,9 +1048,8 @@
         location
       ) {
         calculateRoute();
-      } else if (
-        !isTakeaway()
-      ) {
+
+      } else if (!isTakeaway()) {
         setLocationStatus(
           "Silakan gunakan lokasi Anda untuk menghitung ongkir."
         );
@@ -1152,13 +1084,11 @@
     });
 
   // ==========================================
-  // PEMERIKSAAN JAM SECARA BERKALA
+  // PEMERIKSAAN JAM BERKALA
   // ==========================================
 
   setInterval(
-    () => {
-      updateSummary();
-    },
+    updateSummary,
     HOURS_REFRESH_MS
   );
 
@@ -1198,16 +1128,12 @@
       String(value || "")
         .replace(/\D/g, "");
 
-    if (
-      digits.startsWith("62")
-    ) {
+    if (digits.startsWith("62")) {
       digits =
         "0" + digits.slice(2);
     }
 
-    return /^08\d{8,11}$/.test(
-      digits
-    )
+    return /^08\d{8,11}$/.test(digits)
       ? digits
       : "";
   }
@@ -1217,8 +1143,7 @@
   // ==========================================
 
   function getOrder() {
-    const takeaway =
-      isTakeaway();
+    const takeaway = isTakeaway();
 
     if (!canCheckoutNow()) {
       updateSummary();
@@ -1252,8 +1177,7 @@
       return null;
     }
 
-    const items =
-      app.getCart();
+    const items = app.getCart();
 
     if (
       !Array.isArray(items) ||
@@ -1266,7 +1190,6 @@
     }
 
     const lines = [];
-
     let subtotal = 0;
 
     for (const item of items) {
@@ -1365,9 +1288,7 @@
       });
     }
 
-    if (
-      subtotal !== cartSubtotal()
-    ) {
+    if (subtotal !== cartSubtotal()) {
       alert(
         "Total keranjang berubah. Silakan periksa ulang pesanan."
       );
@@ -1386,8 +1307,7 @@
 
     if (
       !takeaway &&
-      subtotal <
-      minimumSubtotal(route.km)
+      subtotal < minimumSubtotal(route.km)
     ) {
       alert(
         "Untuk jarak ini minimal belanja " +
@@ -1424,21 +1344,15 @@
         400
       ) || "-";
 
-    const payment =
-      selectedPayment();
+    const payment = selectedPayment();
+    const outlet = selectedOutlet();
 
-    const outlet =
-      selectedOutlet();
-
-    if (
-      name.length < 2
-    ) {
+    if (name.length < 2) {
       alert(
         "Isi nama pemesan terlebih dahulu."
       );
 
       $("customerName").focus();
-
       return null;
     }
 
@@ -1448,7 +1362,6 @@
       );
 
       $("customerPhone").focus();
-
       return null;
     }
 
@@ -1461,7 +1374,6 @@
       );
 
       $("customerAddress").focus();
-
       return null;
     }
 
@@ -1485,34 +1397,29 @@
       const when =
         $("pickupWhen").value;
 
-      if (
-        when === "secepatnya"
-      ) {
+      if (when === "secepatnya") {
         pickup =
           "Secepatnya (menunggu konfirmasi admin)";
-      } else if (
-        when === "jadwal"
-      ) {
+
+      } else if (when === "jadwal") {
         const time =
           $("pickupTime").value;
 
         if (
-          !/^([01]\d|2[0-3]):[0-5]\d$/.test(
-            time
-          )
+          !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)
         ) {
           alert(
             "Pilih perkiraan jam pengambilan terlebih dahulu."
           );
 
           $("pickupTime").focus();
-
           return null;
         }
 
         pickup =
           time +
           " WIB (menunggu konfirmasi admin)";
+
       } else {
         alert(
           "Pilih waktu pengambilan."
@@ -1662,6 +1569,7 @@
 
         "Mohon admin konfirmasi ketersediaan menu, total akhir, dan waktu pesanan siap diambil."
       );
+
     } else {
       message.push(
         "*DATA PENGIRIMAN*",
@@ -1699,12 +1607,11 @@
       );
     }
 
-    if (
-      order.payment === "QRIS"
-    ) {
+    if (order.payment === "QRIS") {
       message.push(
         "Saya menunggu QRIS dinamis dari admin setelah pesanan dikonfirmasi."
       );
+
     } else {
       message.push(
         order.takeaway
@@ -1713,9 +1620,7 @@
       );
     }
 
-    message.push(
-      "Terima kasih."
-    );
+    message.push("Terima kasih.");
 
     return message.join("\n");
   }
@@ -1736,6 +1641,8 @@
       ) {
         return;
       }
+
+      // Pemeriksaan jam sebelum validasi.
 
       if (!canCheckoutNow()) {
         updateSummary();
@@ -1758,8 +1665,7 @@
         return;
       }
 
-      const order =
-        getOrder();
+      const order = getOrder();
 
       if (!order) return;
 
@@ -1814,8 +1720,7 @@
 
       if (!ok) return;
 
-      // Pemeriksaan jam terakhir
-      // setelah dialog konfirmasi.
+      // Pemeriksaan jam terakhir setelah konfirmasi.
 
       if (!canCheckoutNow()) {
         updateSummary();
@@ -1852,7 +1757,6 @@
     "pageshow",
     () => {
       preparingWhatsApp = false;
-
       updateSummary();
     }
   );
@@ -1862,9 +1766,7 @@
   // ==========================================
 
   ensureHoursElement();
-
   updatePaymentInfo();
-
   updateSummary();
 
 })();
