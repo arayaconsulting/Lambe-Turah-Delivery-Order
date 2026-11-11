@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -9,7 +10,7 @@
 
 <!--
   CEKER & KERANG PEDAS LAMBE TURAH
-  INDEX.HTML v9.4 — PREMIUM FOOD ORDER
+  INDEX.HTML v9.4.1 — PREMIUM FOOD ORDER
 
   DESAIN:
   - Burgundy, hitam, merah dan emas
@@ -18,7 +19,12 @@
   - Mobile-first dan ringan
 
   SISTEM:
-  - delivery.js v9.3
+  - delivery.js v9.3.1
+  - Ongkir Rp1.000 per km
+  - Pembulatan pecahan hingga 0,5 km ke bawah
+  - Pembulatan pecahan lebih dari 0,5 km ke atas
+  - Minimal belanja Rp75.000 jika jarak tarif > 7 km
+  - Maksimal jangkauan rute sebenarnya 9 km
   - Delivery 10.00–20.00 WIB
   - Takeaway 10.00–21.30 WIB
   - Checkout langsung WhatsApp
@@ -1757,25 +1763,39 @@ main{
     Jarak dan ongkir menunggu lokasi pengiriman.
   </div>
 
+  <!-- ====================================
+       KETENTUAN ONGKIR BARU v9.4.1
+  ==================================== -->
+
   <div class="notice">
 
     <strong>Ketentuan Ongkir</strong>
 
     <div>
-      Sampai 2 km: Rp2.000.
-      Di atas 2–4 km: Rp3.000.
-      Di atas 4–6 km: Rp5.000.
-      Di atas 6–7 km: Rp7.000.
+      🛵 Ongkir Rp1.000 per kilometer,
+      dengan tarif minimal Rp1.000.
     </div>
 
     <div style="margin-top:7px">
-      Untuk jarak di atas 7–9 km,
-      ongkir Rp1.000/km dibulatkan ke atas,
-      dengan minimal belanja Rp75.000.
+      📍 Pembulatan jarak:
+      pecahan hingga 0,5 km dibulatkan ke bawah,
+      sedangkan pecahan lebih dari 0,5 km
+      dibulatkan ke atas.
     </div>
 
     <div style="margin-top:7px">
-      Lebih dari 9 km belum dilayani.
+      Contoh: 1,5 km dihitung 1 km,
+      sedangkan 1,6 km dihitung 2 km.
+    </div>
+
+    <div style="margin-top:7px">
+      🛒 Minimal belanja Rp75.000
+      untuk jarak tarif di atas 7 km.
+    </div>
+
+    <div style="margin-top:7px">
+      Maksimal jangkauan pengiriman 9 km
+      berdasarkan jarak rute sebenarnya.
       Ongkir dan total akhir dikonfirmasi admin outlet.
     </div>
 
@@ -2727,7 +2747,7 @@ document.querySelectorAll("[data-outlet]").forEach(button=>{
   });
 });
 
-/* KONEKSI DENGAN DELIVERY.JS v9.3 */
+/* KONEKSI DENGAN DELIVERY.JS v9.3.1 */
 
 window.LAMBE_APP={
   getOutlet:()=>selectedOutlet,
@@ -2819,11 +2839,12 @@ initializeMenu();
 </script>
 
 <!--
-  DELIVERY.JS v9.3 TETAP DIPAKAI.
-  TIDAK ADA APPS SCRIPT / DATABASE.
+  DELIVERY.JS v9.3.1
+  ONGKIR RP1.000 / KM DENGAN PEMBULATAN BARU.
+  TANPA APPS SCRIPT / DATABASE.
 -->
 
-<script src="./delivery.js?v=9.3"></script>
+<script src="./delivery.js?v=9.3.1"></script>
 
 </body>
 </html>
