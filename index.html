@@ -9,7 +9,7 @@
 
 <!--
   CEKER & KERANG PEDAS LAMBE TURAH
-  INDEX.HTML v9.4.1 — PREMIUM FOOD ORDER
+  INDEX.HTML v9.4.2 — PREMIUM FOOD ORDER
 
   DESAIN:
   - Burgundy, hitam, merah dan emas
@@ -18,7 +18,7 @@
   - Mobile-first dan ringan
 
   SISTEM:
-  - delivery.js v9.3.1
+  - delivery.js v9.3.2
   - Ongkir Rp1.000 per km
   - Pembulatan pecahan hingga 0,5 km ke bawah
   - Pembulatan pecahan lebih dari 0,5 km ke atas
@@ -26,6 +26,9 @@
   - Maksimal jangkauan rute sebenarnya 9 km
   - Delivery 10.00–20.00 WIB
   - Takeaway 10.00–21.30 WIB
+  - Pelanggan baru DO: DP 50% atau lunas 100%
+  - Pelanggan lama: Cash atau QRIS
+  - Takeaway tanpa ketentuan DP pelanggan baru
   - Checkout langsung WhatsApp
   - Tanpa Apps Script / database
 -->
@@ -864,6 +867,145 @@ main{
 }
 
 /* ====================================
+   FITUR PELANGGAN BARU v9.4.2
+==================================== */
+
+.customer-policy{
+  margin-top:17px;
+  padding:16px;
+  border:1px solid #ead7c1;
+  border-radius:15px;
+  background:#fffaf2;
+}
+
+.customer-policy h3{
+  margin:0 0 7px;
+  font-size:15px;
+  font-weight:900;
+  line-height:1.45;
+}
+
+.customer-policy-desc{
+  color:#756552;
+  font-size:12px;
+  line-height:1.65;
+  margin:0 0 12px;
+}
+
+.customer-type-options{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.customer-type-option,
+.deposit-option{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  min-width:0;
+  cursor:pointer;
+  border:2px solid #e8e0d7;
+  background:#fff;
+  padding:12px;
+  border-radius:12px;
+}
+
+.customer-type-option:has(input:checked),
+.deposit-option:has(input:checked){
+  border-color:var(--red);
+  background:#fff2f1;
+}
+
+.customer-type-option input,
+.deposit-option input{
+  flex-shrink:0;
+  margin-top:3px;
+  accent-color:var(--red);
+}
+
+.customer-type-option strong,
+.deposit-option strong{
+  display:block;
+  font-size:12px;
+  line-height:1.5;
+}
+
+.customer-type-option small,
+.deposit-option small{
+  display:block;
+  color:#777;
+  font-size:11px;
+  line-height:1.5;
+  margin-top:4px;
+}
+
+.first-order-payment{
+  margin-top:13px;
+  padding-top:14px;
+  border-top:1px solid #e9d9c8;
+}
+
+.first-order-payment-title{
+  font-size:13px;
+  font-weight:900;
+  margin:0 0 10px;
+}
+
+.deposit-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.deposit-summary{
+  margin-top:12px;
+  border-radius:12px;
+  background:#fff;
+  border:1px solid #eadfce;
+  padding:13px;
+}
+
+.deposit-summary-line{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  font-size:12px;
+  line-height:1.6;
+}
+
+.deposit-summary-line strong{
+  color:var(--red);
+  font-size:16px;
+  font-weight:950;
+}
+
+.deposit-instruction{
+  margin-top:11px;
+  color:#765a38;
+  font-size:12px;
+  line-height:1.7;
+}
+
+.returning-customer-info{
+  margin-top:12px;
+  padding:13px;
+  border-radius:11px;
+  background:#eff8f0;
+  color:#28583a;
+  font-size:12px;
+  line-height:1.7;
+}
+
+.customer-policy-footnote{
+  font-size:11px;
+  color:#84766c;
+  line-height:1.65;
+  margin:12px 0 0;
+}
+
+/* ====================================
    STICKY KERANJANG
 ==================================== */
 
@@ -1181,6 +1323,15 @@ main{
   .mode-hours{
     font-size:11px;
     padding:5px 7px;
+  }
+
+  .customer-policy{
+    padding:13px;
+  }
+
+  .customer-type-options,
+  .deposit-grid{
+    grid-template-columns:1fr;
   }
 }
 
@@ -1763,7 +1914,7 @@ main{
   </div>
 
   <!-- ====================================
-       KETENTUAN ONGKIR BARU v9.4.1
+       KETENTUAN ONGKIR v9.4.1
   ==================================== -->
 
   <div class="notice">
@@ -1931,9 +2082,183 @@ main{
 
   </div>
 
+  <!-- ====================================
+       STATUS PELANGGAN DELIVERY v9.4.2
+  ==================================== -->
+
+  <div class="customer-policy" id="customerPolicySection">
+
+    <h3>
+      🛡️ Ketentuan Pembayaran Delivery
+    </h3>
+
+    <p class="customer-policy-desc">
+      Apakah Anda sudah pernah melakukan pemesanan
+      Delivery Order di Lambe Turah?
+    </p>
+
+    <div
+      class="customer-type-options"
+      role="group"
+      aria-label="Status pelanggan delivery">
+
+      <label class="customer-type-option">
+
+        <input
+          type="radio"
+          name="customerType"
+          value="new"
+          checked
+        >
+
+        <span>
+          <strong>Baru pertama kali</strong>
+          <small>
+            Belum pernah pesan Delivery Order
+          </small>
+        </span>
+
+      </label>
+
+      <label class="customer-type-option">
+
+        <input
+          type="radio"
+          name="customerType"
+          value="returning"
+        >
+
+        <span>
+          <strong>Sudah pernah pesan</strong>
+          <small>
+            Pernah melakukan Delivery Order
+          </small>
+        </span>
+
+      </label>
+
+    </div>
+
+    <!-- PILIHAN KHUSUS PELANGGAN BARU -->
+
+    <div
+      class="first-order-payment"
+      id="firstOrderPaymentSection">
+
+      <p class="first-order-payment-title">
+        Pilih Pembayaran Awal
+      </p>
+
+      <div
+        class="deposit-grid"
+        role="group"
+        aria-label="Pembayaran awal pelanggan baru">
+
+        <label class="deposit-option">
+
+          <input
+            type="radio"
+            name="firstOrderPayment"
+            value="dp50"
+            checked
+          >
+
+          <span>
+            <strong>DP 50%</strong>
+            <small>
+              Bayar setengah lebih dahulu,
+              sisanya saat pesanan diterima
+            </small>
+          </span>
+
+        </label>
+
+        <label class="deposit-option">
+
+          <input
+            type="radio"
+            name="firstOrderPayment"
+            value="full100"
+          >
+
+          <span>
+            <strong>Lunas 100%</strong>
+            <small>
+              Bayar seluruh pesanan
+              sebelum diproses
+            </small>
+          </span>
+
+        </label>
+
+      </div>
+
+      <div class="deposit-summary">
+
+        <div class="deposit-summary-line">
+
+          <span id="depositAmountLabel">
+            DP minimal 50%
+          </span>
+
+          <strong id="depositAmount">
+            Rp0
+          </strong>
+
+        </div>
+
+        <div
+          class="deposit-summary-line"
+          style="margin-top:7px">
+
+          <span id="remainingAmountLabel">
+            Sisa pembayaran
+          </span>
+
+          <strong id="remainingAmount">
+            Rp0
+          </strong>
+
+        </div>
+
+      </div>
+
+      <div class="deposit-instruction">
+        Pembayaran awal dilakukan melalui
+        transfer atau QRIS setelah admin
+        mengonfirmasi pesanan dan memberikan
+        instruksi pembayaran.
+        Jangan melakukan pembayaran sebelum
+        menerima konfirmasi admin.
+      </div>
+
+    </div>
+
+    <!-- KETERANGAN PELANGGAN LAMA -->
+
+    <div
+      class="returning-customer-info"
+      id="returningCustomerInfo"
+      hidden>
+
+      ✓ Pelanggan yang sudah pernah melakukan
+      Delivery Order dapat memilih pembayaran
+      Cash atau QRIS seperti biasa.
+      Riwayat pemesanan akan diverifikasi admin.
+
+    </div>
+
+    <p class="customer-policy-footnote">
+      Ketentuan ini khusus Delivery Order.
+      Pelanggan Takeaway tidak dikenakan
+      ketentuan DP pelanggan baru.
+    </p>
+
+  </div>
+
   <div class="payment-note" id="paymentInfo">
     Pembayaran tunai saat pesanan diterima.
-    Total akhir dikonfirmasi admin outlet.
+    Total akhir dikonfirmasi admin.
   </div>
 
   <button
@@ -2650,6 +2975,150 @@ el("pickupWhen").addEventListener(
   updatePickupTime
 );
 
+/* ====================================
+   KETENTUAN PELANGGAN v9.4.2
+==================================== */
+
+function selectedCustomerType(){
+  return document.querySelector(
+    'input[name="customerType"]:checked'
+  )?.value||"new";
+}
+
+function selectedFirstOrderPayment(){
+  return document.querySelector(
+    'input[name="firstOrderPayment"]:checked'
+  )?.value||"dp50";
+}
+
+function updateCustomerPolicyUI(){
+  const takeaway=selectedMode==="takeaway";
+  const firstOrder=selectedCustomerType()==="new";
+
+  el("customerPolicySection").hidden=takeaway;
+
+  el("firstOrderPaymentSection").hidden=
+    takeaway||!firstOrder;
+
+  el("returningCustomerInfo").hidden=
+    takeaway||firstOrder;
+
+  if(takeaway){
+    el("cashDescription").textContent=
+      "Bayar tunai saat mengambil pesanan";
+  }else if(firstOrder){
+    el("cashDescription").textContent=
+      "Pelunasan sisa saat diterima, setelah DP";
+  }else{
+    el("cashDescription").textContent=
+      "Bayar tunai saat pesanan diterima";
+  }
+
+  updateDepositSummary();
+
+  document.dispatchEvent(
+    new Event("lambe-customer-policy-updated")
+  );
+}
+
+function updateDepositSummary(){
+  const takeaway=selectedMode==="takeaway";
+  const firstOrder=selectedCustomerType()==="new";
+
+  if(takeaway||!firstOrder){
+    return;
+  }
+
+  const subtotal=getSubtotal();
+
+  const shippingText=
+    el("summaryShipping").textContent.trim();
+
+  const shippingKnown=
+    /^Rp[\d.]+$/.test(shippingText);
+
+  const shipping=shippingKnown
+    ?Number(shippingText.replace(/\D/g,""))
+    :0;
+
+  const total=shippingKnown
+    ?subtotal+shipping
+    :null;
+
+  const full=
+    selectedFirstOrderPayment()==="full100";
+
+  el("depositAmountLabel").textContent=
+    full?"Pembayaran lunas 100%":"DP minimal 50%";
+
+  el("remainingAmountLabel").textContent=
+    full?"Sisa pembayaran":"Sisa saat pesanan diterima";
+
+  if(total===null){
+    el("depositAmount").textContent=
+      "Menunggu ongkir";
+
+    el("remainingAmount").textContent=
+      "Menunggu ongkir";
+
+    return;
+  }
+
+  const initial=full
+    ?total
+    :Math.ceil(total/2);
+
+  const remaining=total-initial;
+
+  el("depositAmount").textContent=
+    formatRp(initial);
+
+  el("remainingAmount").textContent=
+    formatRp(remaining);
+}
+
+document
+  .querySelectorAll('input[name="customerType"]')
+  .forEach(input=>{
+    input.addEventListener(
+      "change",
+      updateCustomerPolicyUI
+    );
+  });
+
+document
+  .querySelectorAll('input[name="firstOrderPayment"]')
+  .forEach(input=>{
+    input.addEventListener(
+      "change",
+      updateCustomerPolicyUI
+    );
+  });
+
+document.addEventListener(
+  "lambe-cart-updated",
+  updateDepositSummary
+);
+
+/*
+ * Ongkir dihitung oleh delivery.js.
+ * Pantau perubahan ringkasan ongkir
+ * agar nominal DP ikut diperbarui.
+ */
+
+const shippingObserver=new MutationObserver(
+  updateDepositSummary
+);
+
+shippingObserver.observe(
+  el("summaryShipping"),
+  {
+    childList:true,
+    characterData:true,
+    subtree:true
+  }
+);
+
 /* MODE DELIVERY / TAKEAWAY */
 
 function updateModeUI(){
@@ -2701,6 +3170,7 @@ function updateModeUI(){
   });
 
   updatePickupTime();
+  updateCustomerPolicyUI();
 
   document.dispatchEvent(
     new Event("lambe-mode-updated")
@@ -2746,7 +3216,7 @@ document.querySelectorAll("[data-outlet]").forEach(button=>{
   });
 });
 
-/* KONEKSI DENGAN DELIVERY.JS v9.3.1 */
+/* KONEKSI DENGAN DELIVERY.JS v9.3.2 */
 
 window.LAMBE_APP={
   getOutlet:()=>selectedOutlet,
@@ -2754,6 +3224,8 @@ window.LAMBE_APP={
   getCart:()=>cart.map(item=>({...item})),
   getProduct:productById,
   getSubtotal,
+  getCustomerType:selectedCustomerType,
+  getFirstOrderPayment:selectedFirstOrderPayment,
   formatRp
 };
 
@@ -2838,12 +3310,12 @@ initializeMenu();
 </script>
 
 <!--
-  DELIVERY.JS v9.3.1
-  ONGKIR RP1.000 / KM DENGAN PEMBULATAN BARU.
+  DELIVERY.JS v9.3.2
+  ONGKIR RP1.000/KM DAN PEMBAYARAN PELANGGAN BARU.
   TANPA APPS SCRIPT / DATABASE.
 -->
 
-<script src="./delivery.js?v=9.3.1"></script>
+<script src="./delivery.js?v=9.3.2"></script>
 
 </body>
 </html>
