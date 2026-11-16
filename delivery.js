@@ -3,7 +3,9 @@
 
   /*
    * CEKER & KERANG PEDAS LAMBE TURAH
-   * DELIVERY.JS v9.3.1 — FINAL
+   * DELIVERY.JS v9.3.2 — FINAL
+   *
+   * KOMPATIBEL DENGAN INDEX.HTML v9.4.2
    *
    * CHECKOUT LANGSUNG KE WHATSAPP
    * TANPA GOOGLE APPS SCRIPT
@@ -23,7 +25,16 @@
    * - Katalog dan keranjang tersedia 24 jam
    * - Checkout otomatis ditutup di luar jam layanan
    *
-   * KOMPATIBEL DENGAN INDEX.HTML v9.4.1
+   * PEMBARUAN v9.3.2:
+   * - Identifikasi pelanggan baru/lama khusus Delivery
+   * - Pelanggan baru: DP 50% atau lunas 100%
+   * - DP dihitung dari total termasuk ongkir
+   * - Pelanggan lama: Cash atau QRIS
+   * - Takeaway tidak dikenakan DP pelanggan baru
+   * - Status pelanggan dan pembayaran masuk WhatsApp
+   * - Pembayaran awal menunggu instruksi admin
+   * - Admin wajib memverifikasi status pelanggan
+   *   dan pembayaran sebelum memproses pesanan
    */
 
   // ==========================================
@@ -56,6 +67,12 @@
   const ROUTE_TIMEOUT_MS = 15000;
 
   // ==========================================
+  // KONFIGURASI PEMBAYARAN PELANGGAN BARU
+  // ==========================================
+
+  const FIRST_ORDER_DP_RATE = 0.5;
+
+  // ==========================================
   // JAM OPERASIONAL
   // ==========================================
 
@@ -78,10 +95,11 @@
   const HOURS_REFRESH_MS = 15000;
 
   // ==========================================
-  // KONEKSI INDEX.HTML
+  // KONEKSI INDEX.HTML v9.4.2
   // ==========================================
 
   const app = window.LAMBE_APP;
+
   const $ = id => document.getElementById(id);
 
   const requiredFunctions = [
@@ -89,7 +107,9 @@
     "getMode",
     "getCart",
     "getProduct",
-    "getSubtotal"
+    "getSubtotal",
+    "getCustomerType",
+    "getFirstOrderPayment"
   ];
 
   if (
@@ -99,7 +119,8 @@
     )
   ) {
     console.error(
-      "LAMBE_APP belum tersedia atau tidak lengkap."
+      "LAMBE_APP belum tersedia atau tidak lengkap. " +
+      "Pastikan menggunakan index.html v9.4.2."
     );
     return;
   }
@@ -120,12 +141,20 @@
     "customerNotes",
     "paymentInfo",
     "pickupWhen",
-    "pickupTime"
+    "pickupTime",
+    "customerPolicySection",
+    "firstOrderPaymentSection",
+    "returningCustomerInfo",
+    "depositAmount",
+    "remainingAmount",
+    "depositAmountLabel",
+    "remainingAmountLabel"
   ];
 
   if (requiredIds.some(id => !$(id))) {
     console.error(
-      "Ada elemen checkout yang tidak ditemukan pada index.html."
+      "Ada elemen checkout atau pembayaran " +
+      "yang tidak ditemukan pada index.html."
     );
     return;
   }
@@ -182,6 +211,99 @@
         'input[name="payment"]:checked'
       )?.value || "Cash"
     );
+  }
+
+  // ==========================================
+  // STATUS PELANGGAN DELIVERY
+  // ==========================================
+
+  function selectedCustomerType() {
+    return String(
+      app.getCustomerType() || ""
+    );
+  }
+
+  function selectedFirstOrderPayment() {
+    return String(
+      app.getFirstOrderPayment() || ""
+    );
+  }
+
+  function isFirstOrderDelivery() {
+    return (
+      !isTakeaway() &&
+      selectedCustomerType() === "new"
+    );
+  }
+
+  function firstOrderPaymentLabel(value) {
+    if (value === "dp50") {
+      return "DP minimal 50%";
+    }
+
+    if (value === "full100") {
+      return "Lunas 100%";
+    }
+
+    return "";
+  }
+
+  // ==========================================
+  // PERHITUNGAN DP
+  // ==========================================
+
+  /*
+   * DP dihitung dari:
+   *
+   * Total pesanan = subtotal + ongkir.
+   *
+   * DP 50% = pembulatan ke atas
+   * dari 50% total pesanan.
+   *
+   * Contoh:
+   * Total Rp31.001
+   * DP Rp15.501
+   * Sisa Rp15.500
+   *
+   * Untuk lunas 100%:
+   * Pembayaran awal = total pesanan.
+   * Sisa pembayaran = Rp0.
+   */
+
+  function calculateInitialPayment(
+    total,
+    firstOrderChoice
+  ) {
+    if (
+      !Number.isFinite(total) ||
+      total < 0
+    ) {
+      return null;
+    }
+
+    if (firstOrderChoice === "dp50") {
+      const initial = Math.ceil(
+        total * FIRST_ORDER_DP_RATE
+      );
+
+      return {
+        initial,
+        remaining: total - initial,
+        label: "DP minimal 50%",
+        percentage: 50
+      };
+    }
+
+    if (firstOrderChoice === "full100") {
+      return {
+        initial: total,
+        remaining: 0,
+        label: "Lunas 100%",
+        percentage: 100
+      };
+    }
+
+    return null;
   }
 
   // ==========================================
@@ -402,7 +524,7 @@
   }
 
   // ==========================================
-  // PEMBULATAN JARAK v9.3.1
+  // PEMBULATAN JARAK
   // ==========================================
 
   /*
@@ -516,12 +638,48 @@
   function updatePaymentInfo() {
     const takeaway = isTakeaway();
 
+    const payment = selectedPayment();
+
+    const firstOrder = isFirstOrderDelivery();
+
+    if (firstOrder) {
+      const choice = selectedFirstOrderPayment();
+
+      const paymentLabel =
+        firstOrderPaymentLabel(choice);
+
+      $("paymentInfo").textContent =
+        "Pelanggan baru Delivery Order: " +
+        paymentLabel +
+        " wajib dibayar melalui transfer atau QRIS " +
+        "setelah pesanan dikonfirmasi admin. " +
+        (
+          choice === "dp50"
+            ? "Sisa pembayaran dilunasi saat pesanan diterima. "
+            : "Tidak ada sisa pembayaran setelah pelunasan diverifikasi. "
+        ) +
+        "Jangan melakukan pembayaran sebelum menerima " +
+        "instruksi dari admin.";
+
+      return;
+    }
+
+    if (payment === "QRIS") {
+      $("paymentInfo").textContent =
+        "QRIS dinamis akan dikirim admin setelah " +
+        "pesanan dan total pembayaran dikonfirmasi. " +
+        "Jangan membayar sebelum mendapat arahan admin.";
+
+      return;
+    }
+
     $("paymentInfo").textContent =
-      selectedPayment() === "QRIS"
-        ? "QRIS dinamis akan dikirim admin setelah pesanan dan total pembayaran dikonfirmasi. Jangan membayar sebelum mendapat arahan admin."
-        : takeaway
-          ? "Pembayaran tunai saat mengambil pesanan di outlet. Waktu pengambilan dan total akhir dikonfirmasi admin."
-          : "Pembayaran tunai saat pesanan diterima. Total akhir dikonfirmasi admin.";
+      takeaway
+        ? "Pembayaran tunai saat mengambil pesanan " +
+          "di outlet. Waktu pengambilan dan total akhir " +
+          "dikonfirmasi admin."
+        : "Pembayaran tunai saat pesanan diterima. " +
+          "Total akhir dikonfirmasi admin.";
   }
 
   // ==========================================
@@ -665,6 +823,26 @@
           minimumSubtotal(currentRoute.km)
         );
 
+    } else if (
+      !takeaway &&
+      !["new", "returning"].includes(
+        selectedCustomerType()
+      )
+    ) {
+      checkout.disabled = true;
+      checkout.textContent =
+        "Pilih Status Pelanggan";
+
+    } else if (
+      isFirstOrderDelivery() &&
+      !["dp50", "full100"].includes(
+        selectedFirstOrderPayment()
+      )
+    ) {
+      checkout.disabled = true;
+      checkout.textContent =
+        "Pilih Pembayaran Awal";
+
     } else {
       checkout.disabled = false;
 
@@ -675,6 +853,7 @@
     }
 
     updateHoursInfo();
+    updatePaymentInfo();
   }
 
   // ==========================================
@@ -828,7 +1007,9 @@
       route = null;
 
       setLocationStatus(
-        "Ongkir belum dapat dihitung. Periksa koneksi internet dan coba Hitung Ulang Ongkir. " +
+        "Ongkir belum dapat dihitung. " +
+        "Periksa koneksi internet dan coba " +
+        "Hitung Ulang Ongkir. " +
         (
           error.name === "AbortError"
             ? "Layanan rute terlalu lama merespons."
@@ -864,7 +1045,10 @@
 
       if (!navigator.geolocation) {
         setLocationStatus(
-          "Browser tidak mendukung akses lokasi. Jika membuka dari Instagram, pilih menu titik tiga untuk membuka website melalui Safari atau Chrome.",
+          "Browser tidak mendukung akses lokasi. " +
+          "Jika membuka dari Instagram, pilih menu " +
+          "titik tiga untuk membuka website melalui " +
+          "Safari atau Chrome.",
           "error"
         );
         return;
@@ -872,7 +1056,8 @@
 
       if (!window.isSecureContext) {
         setLocationStatus(
-          "Layanan lokasi membutuhkan HTTPS. Buka website melalui alamat resminya.",
+          "Layanan lokasi membutuhkan HTTPS. " +
+          "Buka website melalui alamat resminya.",
           "error"
         );
         return;
@@ -883,7 +1068,8 @@
       invalidateRoute();
 
       setLocationStatus(
-        "Meminta titik lokasi. Pilih Izinkan saat browser meminta akses GPS."
+        "Meminta titik lokasi. Pilih Izinkan " +
+        "saat browser meminta akses GPS."
       );
 
       navigator.geolocation.getCurrentPosition(
@@ -940,7 +1126,8 @@
           invalidateRoute();
 
           let message =
-            "Lokasi belum dapat diperoleh. Silakan coba kembali.";
+            "Lokasi belum dapat diperoleh. " +
+            "Silakan coba kembali.";
 
           if (error.code === 1) {
             message =
@@ -1025,7 +1212,8 @@
         invalidateRoute();
 
         setLocationStatus(
-          "Outlet diganti. Gunakan lokasi untuk menghitung ongkir."
+          "Outlet diganti. Gunakan lokasi " +
+          "untuk menghitung ongkir."
         );
       }
     }
@@ -1051,7 +1239,8 @@
 
       } else if (!isTakeaway()) {
         setLocationStatus(
-          "Silakan gunakan lokasi Anda untuk menghitung ongkir."
+          "Silakan gunakan lokasi Anda " +
+          "untuk menghitung ongkir."
         );
       }
 
@@ -1069,6 +1258,18 @@
   );
 
   // ==========================================
+  // PERUBAHAN STATUS PELANGGAN
+  // ==========================================
+
+  document.addEventListener(
+    "lambe-customer-policy-updated",
+    () => {
+      updatePaymentInfo();
+      updateSummary();
+    }
+  );
+
+  // ==========================================
   // PERUBAHAN PEMBAYARAN
   // ==========================================
 
@@ -1079,7 +1280,10 @@
     .forEach(input => {
       input.addEventListener(
         "change",
-        updatePaymentInfo
+        () => {
+          updatePaymentInfo();
+          updateSummary();
+        }
       );
     });
 
@@ -1172,7 +1376,8 @@
       )
     ) {
       alert(
-        "Titik pengiriman atau ongkir belum valid. Silakan hitung ulang."
+        "Titik pengiriman atau ongkir belum valid. " +
+        "Silakan hitung ulang."
       );
       return null;
     }
@@ -1206,7 +1411,8 @@
         qty > 99
       ) {
         alert(
-          "Keranjang tidak valid. Periksa kembali jumlah pesanan."
+          "Keranjang tidak valid. " +
+          "Periksa kembali jumlah pesanan."
         );
         return null;
       }
@@ -1219,7 +1425,8 @@
         unitPrice < 0
       ) {
         alert(
-          "Harga salah satu menu tidak valid. Silakan muat ulang halaman."
+          "Harga salah satu menu tidak valid. " +
+          "Silakan muat ulang halaman."
         );
         return null;
       }
@@ -1290,7 +1497,8 @@
 
     if (subtotal !== cartSubtotal()) {
       alert(
-        "Total keranjang berubah. Silakan periksa ulang pesanan."
+        "Total keranjang berubah. " +
+        "Silakan periksa ulang pesanan."
       );
       return null;
     }
@@ -1358,7 +1566,8 @@
 
     if (!phone) {
       alert(
-        "Nomor WhatsApp tidak valid. Gunakan format 08xxxxxxxxxx."
+        "Nomor WhatsApp tidak valid. " +
+        "Gunakan format 08xxxxxxxxxx."
       );
 
       $("customerPhone").focus();
@@ -1370,7 +1579,8 @@
       address.length < 5
     ) {
       alert(
-        "Isi alamat pengiriman lengkap beserta patokan."
+        "Isi alamat pengiriman lengkap " +
+        "beserta patokan."
       );
 
       $("customerAddress").focus();
@@ -1382,9 +1592,68 @@
       !outlet
     ) {
       alert(
-        "Pilih outlet dan metode pembayaran yang tersedia."
+        "Pilih outlet dan metode pembayaran " +
+        "yang tersedia."
       );
       return null;
+    }
+
+    // ========================================
+    // STATUS PELANGGAN DELIVERY
+    // ========================================
+
+    let customerType = null;
+    let firstOrderChoice = null;
+    let initialPayment = null;
+
+    if (!takeaway) {
+      customerType =
+        selectedCustomerType();
+
+      if (
+        !["new", "returning"].includes(
+          customerType
+        )
+      ) {
+        alert(
+          "Pilih status pelanggan Delivery Order."
+        );
+        return null;
+      }
+
+      if (customerType === "new") {
+        firstOrderChoice =
+          selectedFirstOrderPayment();
+
+        if (
+          !["dp50", "full100"].includes(
+            firstOrderChoice
+          )
+        ) {
+          alert(
+            "Pilih DP 50% atau lunas 100% " +
+            "untuk pemesanan pertama."
+          );
+          return null;
+        }
+
+        const fullTotal =
+          subtotal + route.fee;
+
+        initialPayment =
+          calculateInitialPayment(
+            fullTotal,
+            firstOrderChoice
+          );
+
+        if (!initialPayment) {
+          alert(
+            "Nominal pembayaran awal " +
+            "belum dapat dihitung."
+          );
+          return null;
+        }
+      }
     }
 
     // ========================================
@@ -1406,10 +1675,13 @@
           $("pickupTime").value;
 
         if (
-          !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)
+          !/^([01]\d|2[0-3]):[0-5]\d$/.test(
+            time
+          )
         ) {
           alert(
-            "Pilih perkiraan jam pengambilan terlebih dahulu."
+            "Pilih perkiraan jam pengambilan " +
+            "terlebih dahulu."
           );
 
           $("pickupTime").focus();
@@ -1443,18 +1715,27 @@
       payment,
       items: lines,
       subtotal,
+
       km: takeaway
         ? null
         : route.km,
+
       roundedKm: takeaway
         ? null
         : roundedDistance(route.km),
+
       fee,
       total: subtotal + fee,
+
       mapsLink: takeaway
         ? ""
         : $("mapsLink").value,
-      pickup
+
+      pickup,
+
+      customerType,
+      firstOrderChoice,
+      initialPayment
     };
   }
 
@@ -1535,15 +1816,67 @@
         rupiah(order.total) +
         "*",
 
-      "Metode: " +
+      "Metode dipilih: " +
         (
           order.payment === "QRIS"
-            ? "QRIS Dinamis"
+            ? "QRIS"
             : "Cash"
         ),
 
       ""
     );
+
+    // ========================================
+    // INFORMASI PEMBAYARAN PELANGGAN BARU
+    // ========================================
+
+    if (
+      !order.takeaway &&
+      order.customerType === "new"
+    ) {
+      message.push(
+        "*STATUS PELANGGAN*",
+        "------------------------",
+
+        "Pelanggan baru (Delivery pertama)",
+
+        "Pilihan pembayaran awal: " +
+          order.initialPayment.label,
+
+        "*PEMBAYARAN AWAL: " +
+          rupiah(
+            order.initialPayment.initial
+          ) +
+          "*",
+
+        "Sisa pembayaran: " +
+          rupiah(
+            order.initialPayment.remaining
+          ),
+
+        "Pembayaran awal: Transfer / QRIS " +
+          "(menunggu instruksi admin)",
+
+        "Status pembayaran: BELUM DIVERIFIKASI",
+
+        ""
+      );
+
+    } else if (
+      !order.takeaway &&
+      order.customerType === "returning"
+    ) {
+      message.push(
+        "*STATUS PELANGGAN*",
+        "------------------------",
+
+        "Pelanggan lama (mengaku sudah pernah DO)",
+
+        "Mohon admin verifikasi riwayat pesanan.",
+
+        ""
+      );
+    }
 
     if (order.takeaway) {
       message.push(
@@ -1567,7 +1900,9 @@
 
         "",
 
-        "Mohon admin konfirmasi ketersediaan menu, total akhir, dan waktu pesanan siap diambil."
+        "Mohon admin konfirmasi " +
+          "ketersediaan menu, total akhir, " +
+          "dan waktu pesanan siap diambil."
       );
 
     } else {
@@ -1603,24 +1938,83 @@
 
         "",
 
-        "Mohon admin konfirmasi ketersediaan menu, ongkir, dan total akhir."
+        "Mohon admin konfirmasi " +
+          "ketersediaan menu, ongkir, " +
+          "dan total akhir."
       );
     }
 
-    if (order.payment === "QRIS") {
+    // ========================================
+    // INSTRUKSI PEMBAYARAN
+    // ========================================
+
+    if (
+      !order.takeaway &&
+      order.customerType === "new"
+    ) {
+      if (
+        order.firstOrderChoice === "dp50"
+      ) {
+        message.push(
+          "",
+          "*KETENTUAN DP PELANGGAN BARU*",
+
+          "Saya memilih DP minimal 50% " +
+            "dari total estimasi pesanan.",
+
+          "Mohon admin mengirimkan " +
+            "instruksi pembayaran awal " +
+            "melalui transfer atau QRIS.",
+
+          "Sisa pembayaran akan saya " +
+            "lunasi saat pesanan diterima.",
+
+          "Pesanan diproses setelah " +
+            "pembayaran awal diverifikasi admin."
+        );
+
+      } else {
+        message.push(
+          "",
+          "*KETENTUAN PELUNASAN PELANGGAN BARU*",
+
+          "Saya memilih pembayaran lunas 100% " +
+            "dari total estimasi pesanan.",
+
+          "Mohon admin mengirimkan " +
+            "instruksi pembayaran melalui " +
+            "transfer atau QRIS.",
+
+          "Pesanan diproses setelah " +
+            "pelunasan diverifikasi admin."
+        );
+      }
+
+    } else if (
+      order.payment === "QRIS"
+    ) {
       message.push(
-        "Saya menunggu QRIS dinamis dari admin setelah pesanan dikonfirmasi."
+        "",
+        "Saya menunggu QRIS dinamis " +
+          "dari admin setelah pesanan " +
+          "dikonfirmasi."
       );
 
     } else {
       message.push(
+        "",
         order.takeaway
-          ? "Pembayaran tunai saat mengambil pesanan di outlet."
-          : "Pembayaran tunai saat pesanan diterima."
+          ? "Pembayaran tunai saat " +
+            "mengambil pesanan di outlet."
+          : "Pembayaran tunai saat " +
+            "pesanan diterima."
       );
     }
 
-    message.push("Terima kasih.");
+    message.push(
+      "",
+      "Terima kasih."
+    );
 
     return message.join("\n");
   }
@@ -1642,7 +2036,7 @@
         return;
       }
 
-      // Pemeriksaan jam sebelum validasi.
+      // Pemeriksaan jam pertama.
 
       if (!canCheckoutNow()) {
         updateSummary();
@@ -1681,6 +2075,48 @@
             "\nOngkir: " +
             rupiah(order.fee);
 
+      let paymentDetail =
+        "Pembayaran: " +
+        order.payment;
+
+      if (
+        !order.takeaway &&
+        order.customerType === "new"
+      ) {
+        paymentDetail =
+          "Status: Pelanggan Baru\n" +
+
+          "Pilihan: " +
+          order.initialPayment.label +
+          "\n" +
+
+          "Pembayaran awal: " +
+          rupiah(
+            order.initialPayment.initial
+          ) +
+          "\n" +
+
+          "Sisa pembayaran: " +
+          rupiah(
+            order.initialPayment.remaining
+          ) +
+          "\n" +
+
+          "Transfer/QRIS setelah konfirmasi admin";
+      }
+
+      if (
+        !order.takeaway &&
+        order.customerType === "returning"
+      ) {
+        paymentDetail =
+          "Status: Pelanggan Lama " +
+          "(perlu verifikasi admin)\n" +
+
+          "Pembayaran: " +
+          order.payment;
+      }
+
       const ok =
         window.confirm(
           "KONFIRMASI PESANAN LAMBE TURAH\n\n" +
@@ -1708,26 +2144,29 @@
           rupiah(order.total) +
           "\n" +
 
-          "Pembayaran: " +
-          order.payment +
+          paymentDetail +
           "\n\n" +
 
-          "WhatsApp outlet akan dibuka dengan rincian pesanan. " +
-          "Pastikan menekan Kirim agar admin menerimanya.\n\n" +
+          "WhatsApp outlet akan dibuka " +
+          "dengan rincian pesanan. " +
+          "Pastikan menekan Kirim agar " +
+          "admin menerimanya.\n\n" +
 
           "Lanjutkan?"
         );
 
       if (!ok) return;
 
-      // Pemeriksaan jam terakhir setelah konfirmasi.
+      // Pemeriksaan jam terakhir
+      // setelah dialog konfirmasi.
 
       if (!canCheckoutNow()) {
         updateSummary();
 
         alert(
-          "Maaf Kak, jam pemesanan sudah berakhir. " +
-          "Silakan kembali saat layanan dibuka."
+          "Maaf Kak, jam pemesanan " +
+          "sudah berakhir. Silakan kembali " +
+          "saat layanan dibuka."
         );
 
         return;
