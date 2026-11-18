@@ -9,7 +9,7 @@
 
 <!--
   CEKER & KERANG PEDAS LAMBE TURAH
-  INDEX.HTML v9.4.3 — PREMIUM FOOD ORDER
+  INDEX.HTML v9.4.4 — PREMIUM FOOD ORDER
 
   DESAIN:
   - Burgundy, hitam, merah dan emas
@@ -18,7 +18,7 @@
   - Mobile-first dan ringan
 
   SISTEM:
-  - delivery.js v9.3.3
+  - delivery.js v9.3.4
   - Ongkir Rp1.000 per km
   - Pecahan <= 0,5 km dibulatkan ke bawah
   - Pecahan > 0,5 km dibulatkan ke atas
@@ -26,11 +26,17 @@
   - Maksimal jangkauan rute sebenarnya 9 km
   - Delivery 10.00–20.00 WIB
   - Takeaway 10.00–21.30 WIB
-  - Pelanggan baru DO + Cash: DP 50% via transfer
-  - Pelanggan baru DO + QRIS: lunas 100%
-  - Pelanggan lama: Cash atau QRIS
-  - Takeaway tanpa ketentuan DP pelanggan baru
-  - Checkout langsung WhatsApp
+
+  PEMBAYARAN:
+  - QRIS: pembayaran penuh sesuai total
+  - QRIS tidak menanyakan status pelanggan
+  - Cash Delivery: tanya pelanggan baru/lama
+  - Cash pelanggan baru: DP 50% via transfer
+  - Cash pelanggan lama: bayar saat diterima
+  - Takeaway: Cash/QRIS tanpa ketentuan DP
+
+  CHECKOUT:
+  - Langsung WhatsApp outlet
   - Tanpa Apps Script / database
 -->
 
@@ -52,17 +58,24 @@
 
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
+
 body{
   margin:0;
   background:var(--bg);
   color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,
-  "Segoe UI",Arial,sans-serif;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Arial,
+    sans-serif;
   -webkit-font-smoothing:antialiased;
 }
+
 button,input,textarea,select{font:inherit}
 button{cursor:pointer}
 button:disabled{opacity:.55;cursor:not-allowed}
+
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
@@ -71,6 +84,7 @@ a:focus-visible{
   outline:3px solid var(--gold);
   outline-offset:3px;
 }
+
 [hidden]{display:none!important}
 a{color:inherit}
 
@@ -83,8 +97,12 @@ a{color:inherit}
   isolation:isolate;
   overflow:hidden;
   background:
-    radial-gradient(ellipse at 50% 22%,
-      #653039 0%,#351f23 48%,#1b1716 100%);
+    radial-gradient(
+      ellipse at 50% 22%,
+      #653039 0%,
+      #351f23 48%,
+      #1b1716 100%
+    );
   color:#fff;
   text-align:center;
   padding:29px 18px 38px;
@@ -98,8 +116,16 @@ a{color:inherit}
   z-index:-1;
   opacity:.32;
   background:
-    radial-gradient(circle at 8% 20%,#bc794e33 0,transparent 22%),
-    radial-gradient(circle at 92% 27%,#bc794e33 0,transparent 25%);
+    radial-gradient(
+      circle at 8% 20%,
+      #bc794e33 0,
+      transparent 22%
+    ),
+    radial-gradient(
+      circle at 92% 27%,
+      #bc794e33 0,
+      transparent 25%
+    );
 }
 
 .hero-content{
@@ -178,7 +204,10 @@ a{color:inherit}
   height:2px;
   margin:17px auto 0;
   background:linear-gradient(
-    90deg,transparent,var(--gold),transparent
+    90deg,
+    transparent,
+    var(--gold),
+    transparent
   );
 }
 
@@ -200,9 +229,7 @@ a{color:inherit}
   color:#f4e9de;
 }
 
-.hero-step b{
-  color:var(--yellow);
-}
+.hero-step b{color:var(--yellow)}
 
 /* ORNAMEN SVG DALAM HERO */
 
@@ -263,6 +290,7 @@ a{color:inherit}
   font-size:27px;
   pointer-events:none;
 }
+
 .hero-chili.left{left:13%;top:70%}
 .hero-chili.right{right:14%;top:68%}
 
@@ -356,7 +384,9 @@ main{
   border-radius:15px;
   background:#fbfaf9;
   padding:17px 13px;
-  transition:background .15s,border-color .15s;
+  transition:
+    background .15s,
+    border-color .15s;
 }
 
 .outlet-btn{
@@ -813,6 +843,148 @@ main{
   line-height:1.75;
 }
 
+/* ====================================
+   PEMBAYARAN SEDERHANA v9.4.4
+==================================== */
+
+.customer-policy{
+  margin-top:16px;
+  padding:15px;
+  border:1px solid #ead7c1;
+  border-radius:14px;
+  background:#fffaf2;
+}
+
+.customer-policy-title{
+  margin:0 0 10px;
+  font-size:13px;
+  font-weight:900;
+  line-height:1.5;
+}
+
+.customer-type-options{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+}
+
+.customer-type-option{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  min-width:0;
+  cursor:pointer;
+  border:2px solid #e8e0d7;
+  background:#fff;
+  padding:12px;
+  border-radius:12px;
+}
+
+.customer-type-option:has(input:checked){
+  border-color:var(--red);
+  background:#fff2f1;
+}
+
+.customer-type-option input{
+  flex-shrink:0;
+  margin-top:3px;
+  accent-color:var(--red);
+}
+
+.customer-type-option strong{
+  display:block;
+  font-size:12px;
+  line-height:1.5;
+}
+
+.customer-type-option small{
+  display:block;
+  color:#777;
+  font-size:11px;
+  line-height:1.5;
+  margin-top:4px;
+}
+
+.first-order-payment{
+  margin-top:12px;
+  padding:13px;
+  border:1px solid #eadfce;
+  border-radius:12px;
+  background:#fff;
+}
+
+.first-order-payment-title{
+  font-size:13px;
+  font-weight:900;
+  color:var(--red);
+  margin:0 0 6px;
+}
+
+.first-order-description{
+  font-size:12px;
+  color:#756552;
+  line-height:1.7;
+  margin:0;
+}
+
+.deposit-summary{
+  margin-top:12px;
+  padding-top:11px;
+  border-top:1px solid #eee4dc;
+}
+
+.deposit-summary-line{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  font-size:12px;
+  line-height:1.65;
+}
+
+.deposit-summary-line + .deposit-summary-line{
+  margin-top:7px;
+}
+
+.deposit-summary-line strong{
+  color:var(--red);
+  font-size:15px;
+  font-weight:950;
+  text-align:right;
+}
+
+.deposit-instruction{
+  margin:11px 0 0;
+  color:#765a38;
+  font-size:11px;
+  line-height:1.7;
+}
+
+.qris-info{
+  margin-top:14px;
+  padding:13px 14px;
+  border-radius:12px;
+  background:#fff7e9;
+  border:1px solid #eedec5;
+  color:#705329;
+  font-size:12px;
+  line-height:1.75;
+}
+
+.returning-customer-info{
+  margin-top:11px;
+  padding:11px 12px;
+  border-radius:10px;
+  background:#eff8f0;
+  color:#28583a;
+  font-size:12px;
+  line-height:1.65;
+}
+
+/* ====================================
+   CHECKOUT
+==================================== */
+
 .checkout{
   width:100%;
   margin-top:18px;
@@ -868,170 +1040,6 @@ main{
 }
 
 /* ====================================
-   STATUS PELANGGAN v9.4.3
-==================================== */
-
-.customer-policy{
-  margin-top:17px;
-  padding:16px;
-  border:1px solid #ead7c1;
-  border-radius:15px;
-  background:#fffaf2;
-}
-
-.customer-policy h3{
-  margin:0 0 7px;
-  font-size:15px;
-  font-weight:900;
-  line-height:1.45;
-}
-
-.customer-policy-desc{
-  color:#756552;
-  font-size:12px;
-  line-height:1.65;
-  margin:0 0 12px;
-}
-
-.customer-type-options{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-
-.customer-type-option{
-  display:flex;
-  align-items:flex-start;
-  gap:9px;
-  min-width:0;
-  cursor:pointer;
-  border:2px solid #e8e0d7;
-  background:#fff;
-  padding:12px;
-  border-radius:12px;
-}
-
-.customer-type-option:has(input:checked){
-  border-color:var(--red);
-  background:#fff2f1;
-}
-
-.customer-type-option input{
-  flex-shrink:0;
-  margin-top:3px;
-  accent-color:var(--red);
-}
-
-.customer-type-option strong{
-  display:block;
-  font-size:12px;
-  line-height:1.5;
-}
-
-.customer-type-option small{
-  display:block;
-  color:#777;
-  font-size:11px;
-  line-height:1.5;
-  margin-top:4px;
-}
-
-/* ====================================
-   PEMBAYARAN OTOMATIS PELANGGAN BARU
-==================================== */
-
-.first-order-payment{
-  margin-top:13px;
-  padding-top:14px;
-  border-top:1px solid #e9d9c8;
-}
-
-.first-order-payment-title{
-  font-size:13px;
-  font-weight:900;
-  margin:0 0 10px;
-}
-
-.first-order-policy{
-  padding:13px;
-  border-radius:12px;
-  background:#fff;
-  border:1px solid #eadfce;
-}
-
-.first-order-policy strong{
-  display:block;
-  color:var(--red);
-  font-size:14px;
-  line-height:1.5;
-}
-
-.first-order-policy p{
-  margin:7px 0 0;
-  font-size:12px;
-  line-height:1.7;
-  color:#6e5a48;
-}
-
-.deposit-summary{
-  margin-top:12px;
-  border-radius:12px;
-  background:#fff;
-  border:1px solid #eadfce;
-  padding:13px;
-}
-
-.deposit-summary-line{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
-  font-size:12px;
-  line-height:1.6;
-}
-
-.deposit-summary-line strong{
-  color:var(--red);
-  font-size:16px;
-  font-weight:950;
-}
-
-.deposit-instruction{
-  margin-top:11px;
-  color:#765a38;
-  font-size:12px;
-  line-height:1.7;
-}
-
-.qris-urgency{
-  padding:10px 12px;
-  margin-top:10px;
-  border-radius:10px;
-  background:#fff0ed;
-  color:#9d2730;
-  font-size:12px;
-  font-weight:750;
-  line-height:1.65;
-}
-
-.returning-customer-info{
-  margin-top:12px;
-  padding:13px;
-  border-radius:11px;
-  background:#eff8f0;
-  color:#28583a;
-  font-size:12px;
-  line-height:1.7;
-}
-
-.customer-policy-footnote{
-  font-size:11px;
-  color:#84766c;
-  line-height:1.65;
-  margin:12px 0 0;
-}
-
-/* ====================================
    STICKY KERANJANG
 ==================================== */
 
@@ -1045,7 +1053,9 @@ main{
   background:#fffdfaef;
   backdrop-filter:blur(13px);
   padding:12px 15px;
-  padding-bottom:calc(12px + env(safe-area-inset-bottom));
+  padding-bottom:calc(
+    12px + env(safe-area-inset-bottom)
+  );
   box-shadow:0 -5px 25px #0000000c;
 }
 
@@ -1183,9 +1193,7 @@ main{
   background:#fff2f1;
 }
 
-.choice input{
-  accent-color:var(--red);
-}
+.choice input{accent-color:var(--red)}
 
 .modal-quantity{
   display:flex;
@@ -1241,12 +1249,15 @@ main{
     width:150px;
     left:1%;
   }
+
   .hero-decoration.right{
     width:125px;
     right:1%;
   }
+
   .grid-products{
-    grid-template-columns:repeat(3,minmax(0,1fr));
+    grid-template-columns:
+      repeat(3,minmax(0,1fr));
   }
 }
 
@@ -1254,108 +1265,127 @@ main{
   .hero{
     padding:23px 13px 30px;
   }
+
   .hero-badge{
     font-size:10px;
     padding:9px 12px;
   }
+
   .hero-eyebrow{
     font-size:10px;
     letter-spacing:1.6px;
     margin-top:16px;
   }
+
   .hero-logo-wrap{
     width:min(77%,320px);
     margin:14px auto;
     padding:5px;
   }
+
   .hero-logo{
     max-height:140px;
     padding:8px;
   }
+
   .hero h1{
     font-size:clamp(27px,7.5vw,36px);
     letter-spacing:-.7px;
   }
+
   .hero-description{
     max-width:350px;
     font-size:12px;
     line-height:1.7;
   }
+
   .hero-step{
     font-size:10px;
     padding:8px 10px;
   }
+
   .hero-decoration.left{
     width:99px;
     top:155px;
     left:-28px;
     opacity:.25;
   }
+
   .hero-decoration.right{
     width:82px;
     top:160px;
     right:-15px;
     opacity:.25;
   }
-  .hero-chili{
+
+  .hero-chili{display:none}
+
+  .spark.three,
+  .spark.four{
     display:none;
   }
-  .spark.three,.spark.four{
-    display:none;
-  }
-  .hero-road{
-    height:53px;
-  }
+
+  .hero-road{height:53px}
 
   main{
     padding:13px 10px 125px;
   }
+
   .panel{
     padding:17px 13px;
     border-radius:17px;
   }
-  .panel h2{
-    font-size:19px;
-  }
+
+  .panel h2{font-size:19px}
+
   .section-icon{
     width:34px;
     height:34px;
   }
+
   .grid-products{
-    grid-template-columns:repeat(2,minmax(0,1fr));
+    grid-template-columns:
+      repeat(2,minmax(0,1fr));
     gap:9px;
   }
+
   .photo-wrap{height:145px}
   .product-body{padding:11px}
   .product-name{font-size:13px}
   .product-desc{font-size:10px}
   .product-price{font-size:17px}
 
-  .fields,.pay-grid{
+  .fields,
+  .pay-grid{
     grid-template-columns:1fr;
   }
+
   .field.full{grid-column:auto}
 
   .outlet-btn{
     padding:14px 8px;
     font-size:13px;
   }
+
   .mode-btn{
     padding:13px 10px;
     min-height:123px;
   }
+
   .mode-title{font-size:15px}
   .mode-desc{font-size:11px}
+
   .mode-hours{
     font-size:11px;
     padding:5px 7px;
   }
 
-  .customer-policy{
-    padding:13px;
-  }
   .customer-type-options{
     grid-template-columns:1fr;
+  }
+
+  .customer-policy{
+    padding:13px;
   }
 }
 
@@ -1389,10 +1419,12 @@ main{
     xmlns="http://www.w3.org/2000/svg"
     aria-hidden="true">
 
-    <g fill="none" stroke="#EFC57E"
-       stroke-linecap="round"
-       stroke-linejoin="round"
-       stroke-width="3">
+    <g
+      fill="none"
+      stroke="#EFC57E"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="3">
 
       <circle cx="50" cy="132" r="23"/>
       <circle cx="161" cy="132" r="23"/>
@@ -1406,14 +1438,22 @@ main{
       <path d="M88 58L72 89"/>
       <path d="M105 79L125 80"/>
 
-      <circle cx="91" cy="39" r="15"
-        fill="#C83D42" stroke="#F7D18E"/>
+      <circle
+        cx="91"
+        cy="39"
+        r="15"
+        fill="#C83D42"
+        stroke="#F7D18E"/>
 
       <path d="M77 35Q91 20 107 35"/>
       <path d="M80 59Q91 48 105 59"/>
 
-      <rect x="126" y="25"
-        width="57" height="48" rx="7"
+      <rect
+        x="126"
+        y="25"
+        width="57"
+        height="48"
+        rx="7"
         fill="#A72630"
         stroke="#F7D18E"/>
 
@@ -1470,18 +1510,28 @@ main{
       <path d="M157 37L169 48L157 59"/>
     </g>
 
-    <circle cx="17" cy="35" r="4"
+    <circle
+      cx="17"
+      cy="35"
+      r="4"
       fill="#F0C987"/>
 
-    <circle cx="162" cy="131" r="4"
+    <circle
+      cx="162"
+      cy="131"
+      r="4"
       fill="#F0C987"/>
   </svg>
 
-  <div class="hero-chili left" aria-hidden="true">
+  <div
+    class="hero-chili left"
+    aria-hidden="true">
     🌶️
   </div>
 
-  <div class="hero-chili right" aria-hidden="true">
+  <div
+    class="hero-chili right"
+    aria-hidden="true">
     🌶️
   </div>
 
@@ -1522,8 +1572,7 @@ main{
       <img
         class="hero-logo"
         src="images/logo-lambe-turah.jpg"
-        alt="Logo Ceker & Kerang Pedas Lambe Turah"
-      >
+        alt="Logo Ceker & Kerang Pedas Lambe Turah">
     </div>
 
     <h1>
@@ -1541,6 +1590,7 @@ main{
     </p>
 
     <div class="hero-steps">
+
       <span class="hero-step">
         <b>01</b> Pilih Outlet
       </span>
@@ -1556,6 +1606,7 @@ main{
       <span class="hero-step">
         <b>04</b> Kirim WhatsApp
       </span>
+
     </div>
 
   </div>
@@ -1713,8 +1764,7 @@ main{
     id="menuSearch"
     type="search"
     placeholder="🔍 Cari menu favorit..."
-    aria-label="Cari menu"
-  >
+    aria-label="Cari menu">
 
   <div
     class="grid-products"
@@ -1762,7 +1812,10 @@ main{
   <div class="panel-heading">
     <span class="section-icon">📝</span>
     <h2>
-      Data <span id="customerSectionTitle">Pengiriman</span>
+      Data
+      <span id="customerSectionTitle">
+        Pengiriman
+      </span>
     </h2>
   </div>
 
@@ -1774,6 +1827,7 @@ main{
   <div class="fields">
 
     <div class="field">
+
       <label for="customerName">
         Nama Pemesan / Penerima *
       </label>
@@ -1784,11 +1838,12 @@ main{
         autocomplete="name"
         maxlength="100"
         placeholder="Nama pelanggan"
-        required
-      >
+        required>
+
     </div>
 
     <div class="field">
+
       <label for="customerPhone">
         Nomor WhatsApp *
       </label>
@@ -1800,8 +1855,8 @@ main{
         inputmode="tel"
         maxlength="20"
         placeholder="08xxxxxxxxxx"
-        required
-      >
+        required>
+
     </div>
 
     <div class="field full" id="addressField">
@@ -1838,7 +1893,10 @@ main{
 
       </select>
 
-      <div class="field" id="pickupTimeField" hidden>
+      <div
+        class="field"
+        id="pickupTimeField"
+        hidden>
 
         <label for="pickupTime">
           Perkiraan Jam Pengambilan *
@@ -1846,8 +1904,7 @@ main{
 
         <input
           id="pickupTime"
-          type="time"
-        >
+          type="time">
 
         <small class="help" style="margin:0">
           Jam pengambilan akan dikonfirmasi oleh admin.
@@ -1916,7 +1973,9 @@ main{
     Titik pengiriman belum ditentukan.
   </div>
 
-  <div class="field" style="margin-top:15px">
+  <div
+    class="field"
+    style="margin-top:15px">
 
     <label for="mapsLink">
       Tautan Google Maps
@@ -1926,8 +1985,7 @@ main{
       id="mapsLink"
       type="url"
       readonly
-      placeholder="Terisi setelah GPS berhasil"
-    >
+      placeholder="Terisi setelah GPS berhasil">
 
   </div>
 
@@ -2051,6 +2109,10 @@ main{
 
   </div>
 
+  <!-- ====================================
+       METODE PEMBAYARAN UTAMA
+  ==================================== -->
+
   <h3 style="font-size:15px;margin:25px 0 0">
     Pilih Metode Pembayaran
   </h3>
@@ -2063,8 +2125,7 @@ main{
         type="radio"
         name="payment"
         value="Cash"
-        checked
-      >
+        checked>
 
       <span class="pay-emoji">
         💵
@@ -2085,8 +2146,7 @@ main{
       <input
         type="radio"
         name="payment"
-        value="QRIS"
-      >
+        value="QRIS">
 
       <span class="pay-emoji">
         📱
@@ -2096,7 +2156,7 @@ main{
         <strong>QRIS</strong>
 
         <small id="qrisDescription">
-          QRIS dinamis dikirim admin setelah pesanan dikonfirmasi
+          Bayar langsung sesuai total pesanan
         </small>
       </span>
 
@@ -2105,18 +2165,16 @@ main{
   </div>
 
   <!-- ====================================
-       STATUS PELANGGAN DELIVERY v9.4.3
+       CASH DELIVERY: STATUS PELANGGAN
+       HANYA DITAMPILKAN JIKA CASH
   ==================================== -->
 
-  <div class="customer-policy" id="customerPolicySection">
+  <div
+    class="customer-policy"
+    id="customerPolicySection">
 
-    <h3>
-      🛡️ Ketentuan Pembayaran Delivery
-    </h3>
-
-    <p class="customer-policy-desc">
-      Apakah Anda sudah pernah melakukan pemesanan
-      Delivery Order di Lambe Turah?
+    <p class="customer-policy-title">
+      Apakah ini pesanan Delivery pertama Anda?
     </p>
 
     <div
@@ -2129,14 +2187,15 @@ main{
         <input
           type="radio"
           name="customerType"
-          value="new"
-          checked
-        >
+          value="returning">
 
         <span>
-          <strong>Baru pertama kali</strong>
+          <strong>
+            Tidak, sudah pernah pesan
+          </strong>
+
           <small>
-            Belum pernah pesan Delivery Order
+            Pernah melakukan Delivery Order
           </small>
         </span>
 
@@ -2147,13 +2206,15 @@ main{
         <input
           type="radio"
           name="customerType"
-          value="returning"
-        >
+          value="new">
 
         <span>
-          <strong>Sudah pernah pesan</strong>
+          <strong>
+            Ya, baru pertama kali
+          </strong>
+
           <small>
-            Pernah melakukan Delivery Order
+            Belum pernah pesan Delivery Order
           </small>
         </span>
 
@@ -2162,31 +2223,27 @@ main{
     </div>
 
     <!-- ====================================
-         PEMBAYARAN AWAL OTOMATIS v9.4.3
+         DP 50% HANYA PELANGGAN BARU CASH
     ==================================== -->
 
     <div
       class="first-order-payment"
-      id="firstOrderPaymentSection">
+      id="firstOrderPaymentSection"
+      hidden>
 
-      <p class="first-order-payment-title">
-        Ketentuan Pembayaran Pertama
+      <p
+        class="first-order-payment-title"
+        id="firstOrderPolicyTitle">
+        DP 50% untuk Pelanggan Baru
       </p>
 
-      <div class="first-order-policy">
-
-        <strong id="firstOrderPolicyTitle">
-          💵 Cash — Wajib DP 50%
-        </strong>
-
-        <p id="firstOrderPolicyDescription">
-          Untuk pelanggan baru yang memilih Cash,
-          wajib membayar DP minimal 50% melalui transfer.
-          Sisa pembayaran dilunasi tunai saat
-          pesanan diterima.
-        </p>
-
-      </div>
+      <p
+        class="first-order-description"
+        id="firstOrderPolicyDescription">
+        Pembayaran awal dilakukan melalui
+        transfer setelah pesanan dikonfirmasi.
+        Sisanya dibayar tunai saat pesanan diterima.
+      </p>
 
       <div class="deposit-summary">
 
@@ -2202,12 +2259,10 @@ main{
 
         </div>
 
-        <div
-          class="deposit-summary-line"
-          style="margin-top:7px">
+        <div class="deposit-summary-line">
 
           <span id="remainingAmountLabel">
-            Sisa pembayaran
+            Sisa tunai saat diterima
           </span>
 
           <strong id="remainingAmount">
@@ -2218,47 +2273,49 @@ main{
 
       </div>
 
-      <div class="deposit-instruction" id="depositInstruction">
+      <p
+        class="deposit-instruction"
+        id="depositInstruction">
         Admin akan memberikan instruksi transfer
         setelah pesanan dikonfirmasi.
-        Jangan melakukan pembayaran sebelum
+        Jangan melakukan transfer sebelum
         menerima instruksi admin.
-      </div>
-
-      <div
-        class="qris-urgency"
-        id="qrisUrgency"
-        hidden>
-        ⏳ QRIS dinamis memiliki batas waktu.
-        Segera lakukan pembayaran setelah
-        kode QRIS diterima agar tidak kedaluwarsa.
-      </div>
+      </p>
 
     </div>
 
-    <!-- PELANGGAN LAMA -->
+    <!-- PELANGGAN LAMA CASH -->
 
     <div
       class="returning-customer-info"
       id="returningCustomerInfo"
       hidden>
-
-      ✓ Pelanggan yang sudah pernah melakukan
-      Delivery Order dapat memilih pembayaran
-      Cash atau QRIS seperti biasa.
-      Riwayat pemesanan akan diverifikasi admin.
-
+      ✓ Bayar tunai saat pesanan diterima.
+      Riwayat pelanggan akan diverifikasi admin.
     </div>
-
-    <p class="customer-policy-footnote">
-      Ketentuan ini khusus Delivery Order.
-      Pelanggan Takeaway tidak dikenakan
-      ketentuan DP pelanggan baru.
-    </p>
 
   </div>
 
-  <div class="payment-note" id="paymentInfo">
+  <!-- ====================================
+       QRIS: TANPA STATUS PELANGGAN
+  ==================================== -->
+
+  <div
+    class="qris-info"
+    id="qrisPaymentInfo"
+    hidden>
+
+    QRIS dinamis akan dikirim admin setelah
+    pesanan dikonfirmasi. Mohon segera lakukan
+    pembayaran sebelum kode kedaluwarsa.
+
+  </div>
+
+  <!-- STATUS PEMBAYARAN DARI DELIVERY.JS -->
+
+  <div
+    class="payment-note"
+    id="paymentInfo">
     Pembayaran tunai saat pesanan diterima.
     Total akhir dikonfirmasi admin.
   </div>
@@ -2372,8 +2429,7 @@ main{
 
       <img
         id="modalPhoto"
-        alt="Foto makanan"
-      >
+        alt="Foto makanan">
 
       <div>
 
@@ -2453,16 +2509,20 @@ main{
 const el=id=>document.getElementById(id);
 
 const formatRp=value=>
-  "Rp"+Math.round(Number(value)||0).toLocaleString("id-ID");
+  "Rp"+Math.round(Number(value)||0)
+    .toLocaleString("id-ID");
 
 const escapeHtml=value=>
-  String(value??"").replace(/[&<>"']/g,char=>({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#39;"
-  }[char]));
+  String(value??"").replace(
+    /[&<>"']/g,
+    char=>({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    }[char])
+  );
 
 const spicyLevels=[
   "Soft Spoken — Tanpa Cabe",
@@ -2490,10 +2550,14 @@ let cart=[];
 let selectedProduct=null;
 let selectedQuantity=1;
 
-/* PRODUK */
+/* ====================================
+   PRODUK
+==================================== */
 
 function productById(id){
-  return menuData.find(product=>product.id===id);
+  return menuData.find(
+    product=>product.id===id
+  );
 }
 
 function foodNeedsSpicyLevel(product){
@@ -2506,7 +2570,9 @@ function foodNeedsSpicyLevel(product){
 }
 
 function productVariantType(product){
-  if(foodNeedsSpicyLevel(product))return "spicy";
+  if(foodNeedsSpicyLevel(product)){
+    return "spicy";
+  }
 
   if(["es-teh","es-jeruk"].includes(product.id)){
     return "temperature";
@@ -2515,7 +2581,9 @@ function productVariantType(product){
   return "none";
 }
 
-/* SUBTOTAL */
+/* ====================================
+   SUBTOTAL
+==================================== */
 
 function getSubtotal(){
   return cart.reduce((sum,item)=>{
@@ -2536,7 +2604,9 @@ function getCartCount(){
   );
 }
 
-/* SIMPAN KERANJANG LOKAL */
+/* ====================================
+   SIMPAN KERANJANG LOKAL
+==================================== */
 
 function saveCart(){
   try{
@@ -2545,7 +2615,10 @@ function saveCart(){
       JSON.stringify(cart)
     );
   }catch(error){
-    console.warn("Keranjang tidak tersimpan:",error);
+    console.warn(
+      "Keranjang tidak tersimpan:",
+      error
+    );
   }
 
   drawCart();
@@ -2555,7 +2628,9 @@ function saveCart(){
   );
 }
 
-/* KATEGORI */
+/* ====================================
+   KATEGORI
+==================================== */
 
 function drawCategories(){
   el("categoryTabs").innerHTML=
@@ -2572,18 +2647,23 @@ function drawCategories(){
     `).join("");
 }
 
-/* GAMBAR AMAN */
+/* ====================================
+   GAMBAR AMAN
+==================================== */
 
 function safeImagePath(image){
   const path=String(image||"");
 
   return(
-    /^images\/[a-zA-Z0-9_./-]+\.(webp|png|jpg|jpeg)$/i.test(path)&&
+    /^images\/[a-zA-Z0-9_./-]+\.(webp|png|jpg|jpeg)$/i
+      .test(path)&&
     !path.includes("..")
   )?path:"";
 }
 
-/* TAMPILKAN MENU */
+/* ====================================
+   TAMPILKAN MENU
+==================================== */
 
 function drawProducts(){
   const query=el("menuSearch")
@@ -2662,7 +2742,9 @@ function drawProducts(){
       :`<div class="empty">Menu tidak ditemukan.</div>`;
 }
 
-/* KERANJANG */
+/* ====================================
+   KERANJANG
+==================================== */
 
 function drawCart(){
   cart=cart.filter(item=>
@@ -2745,15 +2827,20 @@ function drawCart(){
     formatRp(getSubtotal());
 }
 
-/* MODAL PRODUK */
+/* ====================================
+   MODAL PRODUK
+==================================== */
 
 function updateModalTotal(){
   if(!selectedProduct)return;
 
-  el("qtyValue").textContent=selectedQuantity;
+  el("qtyValue").textContent=
+    selectedQuantity;
 
   el("modalTotal").textContent=
-    formatRp(selectedProduct.price*selectedQuantity);
+    formatRp(
+      selectedProduct.price*selectedQuantity
+    );
 }
 
 function openProductModal(id){
@@ -2764,7 +2851,8 @@ function openProductModal(id){
   selectedProduct=product;
   selectedQuantity=1;
 
-  el("modalProductName").textContent=product.name;
+  el("modalProductName").textContent=
+    product.name;
 
   el("modalProductDesc").textContent=
     product.description||"";
@@ -2772,8 +2860,11 @@ function openProductModal(id){
   el("modalPrice").textContent=
     formatRp(product.price);
 
-  el("modalPhoto").src=safeImagePath(product.image);
-  el("modalPhoto").alt=product.name;
+  el("modalPhoto").src=
+    safeImagePath(product.image);
+
+  el("modalPhoto").alt=
+    product.name;
 
   const type=productVariantType(product);
 
@@ -2807,6 +2898,7 @@ function openProductModal(id){
         `).join("")}
       </div>
     `;
+
   }else if(type==="temperature"){
     el("modalVariants").innerHTML=`
       <div class="choice-title">
@@ -2820,8 +2912,7 @@ function openProductModal(id){
             type="radio"
             name="productVariant"
             value="Es"
-            checked
-          >
+            checked>
           ❄️ Es
         </label>
 
@@ -2829,13 +2920,13 @@ function openProductModal(id){
           <input
             type="radio"
             name="productVariant"
-            value="Panas"
-          >
+            value="Panas">
           ☕ Panas
         </label>
 
       </div>
     `;
+
   }else{
     el("modalVariants").innerHTML=`
       <p class="help">
@@ -2860,8 +2951,9 @@ function confirmProduct(){
   if(!selectedProduct)return;
 
   const variant=el("modalVariants")
-    .querySelector('input[name="productVariant"]:checked')
-    ?.value||"";
+    .querySelector(
+      'input[name="productVariant"]:checked'
+    )?.value||"";
 
   const existing=cart.find(item=>
     item.id===selectedProduct.id&&
@@ -2885,30 +2977,50 @@ function confirmProduct(){
   saveCart();
 }
 
-/* EVENT MODAL */
+/* ====================================
+   EVENT MODAL
+==================================== */
 
 el("plusQty").addEventListener("click",()=>{
   if(!selectedProduct)return;
 
-  selectedQuantity=Math.min(99,selectedQuantity+1);
+  selectedQuantity=Math.min(
+    99,
+    selectedQuantity+1
+  );
+
   updateModalTotal();
 });
 
 el("minusQty").addEventListener("click",()=>{
   if(!selectedProduct)return;
 
-  selectedQuantity=Math.max(1,selectedQuantity-1);
+  selectedQuantity=Math.max(
+    1,
+    selectedQuantity-1
+  );
+
   updateModalTotal();
 });
 
-el("confirmAdd").addEventListener("click",confirmProduct);
-el("closeModal").addEventListener("click",closeProductModal);
+el("confirmAdd").addEventListener(
+  "click",
+  confirmProduct
+);
 
-el("productModal").addEventListener("click",event=>{
-  if(event.target===el("productModal")){
-    closeProductModal();
+el("closeModal").addEventListener(
+  "click",
+  closeProductModal
+);
+
+el("productModal").addEventListener(
+  "click",
+  event=>{
+    if(event.target===el("productModal")){
+      closeProductModal();
+    }
   }
-});
+);
 
 document.addEventListener("keydown",event=>{
   if(
@@ -2919,54 +3031,88 @@ document.addEventListener("keydown",event=>{
   }
 });
 
-/* EVENT MENU */
+/* ====================================
+   EVENT MENU
+==================================== */
 
-el("productGrid").addEventListener("click",event=>{
-  const button=event.target.closest("[data-product]");
+el("productGrid").addEventListener(
+  "click",
+  event=>{
+    const button=event.target.closest(
+      "[data-product]"
+    );
 
-  if(button){
-    openProductModal(button.dataset.product);
+    if(button){
+      openProductModal(
+        button.dataset.product
+      );
+    }
   }
-});
+);
 
-el("categoryTabs").addEventListener("click",event=>{
-  const button=event.target.closest("[data-category]");
+el("categoryTabs").addEventListener(
+  "click",
+  event=>{
+    const button=event.target.closest(
+      "[data-category]"
+    );
 
-  if(!button)return;
+    if(!button)return;
 
-  selectedCategory=button.dataset.category;
-  drawCategories();
-  drawProducts();
-});
+    selectedCategory=
+      button.dataset.category;
 
-el("menuSearch").addEventListener("input",drawProducts);
-
-/* EVENT KERANJANG */
-
-el("cartItems").addEventListener("click",event=>{
-  const button=event.target.closest("[data-cart-index]");
-
-  if(!button)return;
-
-  const index=Number(button.dataset.cartIndex);
-
-  if(!cart[index])return;
-
-  cart[index].quantity+=Number(button.dataset.change);
-
-  if(cart[index].quantity<=0){
-    cart.splice(index,1);
+    drawCategories();
+    drawProducts();
   }
+);
 
-  saveCart();
-});
+el("menuSearch").addEventListener(
+  "input",
+  drawProducts
+);
 
-/* TAKEAWAY */
+/* ====================================
+   EVENT KERANJANG
+==================================== */
+
+el("cartItems").addEventListener(
+  "click",
+  event=>{
+    const button=event.target.closest(
+      "[data-cart-index]"
+    );
+
+    if(!button)return;
+
+    const index=Number(
+      button.dataset.cartIndex
+    );
+
+    if(!cart[index])return;
+
+    cart[index].quantity+=Number(
+      button.dataset.change
+    );
+
+    if(cart[index].quantity<=0){
+      cart.splice(index,1);
+    }
+
+    saveCart();
+  }
+);
+
+/* ====================================
+   TAKEAWAY
+==================================== */
 
 function updatePickupTime(){
-  const scheduled=el("pickupWhen").value==="jadwal";
+  const scheduled=
+    el("pickupWhen").value==="jadwal";
 
-  el("pickupTimeField").hidden=!scheduled;
+  el("pickupTimeField").hidden=
+    !scheduled;
 
   el("pickupTime").required=
     selectedMode==="takeaway"&&scheduled;
@@ -2978,14 +3124,8 @@ el("pickupWhen").addEventListener(
 );
 
 /* ====================================
-   KETENTUAN PELANGGAN v9.4.3
+   PEMBAYARAN SEDERHANA v9.4.4
 ==================================== */
-
-function selectedCustomerType(){
-  return document.querySelector(
-    'input[name="customerType"]:checked'
-  )?.value||"new";
-}
 
 function selectedPaymentMethod(){
   return document.querySelector(
@@ -2993,81 +3133,112 @@ function selectedPaymentMethod(){
   )?.value||"Cash";
 }
 
-/*
- * Tidak ada pilihan DP/lunas terpisah.
- * Pembayaran awal mengikuti metode pembayaran.
- *
- * Cash = DP 50% melalui transfer.
- * QRIS = lunas 100% melalui QRIS dinamis.
- */
-function selectedFirstOrderPayment(){
-  if(selectedMode==="takeaway")return null;
-
-  if(selectedCustomerType()!=="new")return null;
-
-  return selectedPaymentMethod()==="QRIS"
-    ?"full100"
-    :"dp50";
+function selectedCustomerType(){
+  return document.querySelector(
+    'input[name="customerType"]:checked'
+  )?.value||"";
 }
 
+/*
+ * Status pelanggan hanya diperlukan
+ * untuk Cash Delivery.
+ *
+ * QRIS tidak menanyakan status pelanggan.
+ */
+
+function checkoutCustomerType(){
+  if(selectedMode==="takeaway"){
+    return null;
+  }
+
+  if(selectedPaymentMethod()==="QRIS"){
+    return "not_required";
+  }
+
+  return selectedCustomerType();
+}
+
+/*
+ * Pilihan pembayaran awal
+ * otomatis mengikuti metode.
+ *
+ * QRIS = lunas 100%
+ * Cash + pelanggan baru = DP 50%
+ * Cash + pelanggan lama = tidak ada DP
+ */
+
+function selectedFirstOrderPayment(){
+  if(selectedMode==="takeaway"){
+    return null;
+  }
+
+  if(selectedPaymentMethod()==="QRIS"){
+    return "full100";
+  }
+
+  if(selectedCustomerType()==="new"){
+    return "dp50";
+  }
+
+  return null;
+}
+
+/* ====================================
+   TAMPILAN STATUS PELANGGAN
+==================================== */
+
 function updateCustomerPolicyUI(){
-  const takeaway=selectedMode==="takeaway";
-  const firstOrder=selectedCustomerType()==="new";
-  const payment=selectedPaymentMethod();
+  const takeaway=
+    selectedMode==="takeaway";
 
-  el("customerPolicySection").hidden=takeaway;
+  const payment=
+    selectedPaymentMethod();
 
+  const cashDelivery=
+    !takeaway&&payment==="Cash";
+
+  const qris=
+    payment==="QRIS";
+
+  const customerType=
+    selectedCustomerType();
+
+  /*
+   * Pertanyaan hanya untuk Cash Delivery.
+   */
+  el("customerPolicySection").hidden=
+    !cashDelivery;
+
+  /*
+   * DP hanya untuk Cash pelanggan baru.
+   */
   el("firstOrderPaymentSection").hidden=
-    takeaway||!firstOrder;
+    !cashDelivery||
+    customerType!=="new";
 
+  /*
+   * Pelanggan lama.
+   */
   el("returningCustomerInfo").hidden=
-    takeaway||firstOrder;
+    !cashDelivery||
+    customerType!=="returning";
 
-  el("qrisUrgency").hidden=
-    takeaway||!firstOrder||payment!=="QRIS";
+  /*
+   * QRIS: hanya satu informasi singkat.
+   */
+  el("qrisPaymentInfo").hidden=
+    !qris;
 
-  if(takeaway){
-    el("cashDescription").textContent=
-      "Bayar tunai saat mengambil pesanan";
+  /*
+   * Deskripsi pilihan pembayaran.
+   */
+  el("cashDescription").textContent=
+    takeaway
+      ?"Bayar tunai saat mengambil pesanan"
+      :"Bayar tunai saat pesanan diterima";
 
-    el("qrisDescription").textContent=
-      "QRIS dinamis dikirim admin setelah pesanan dikonfirmasi";
-  }else if(firstOrder){
-    el("cashDescription").textContent=
-      "DP 50% via transfer, sisa tunai saat diterima";
-
-    el("qrisDescription").textContent=
-      "Wajib lunas 100% dengan QRIS dinamis";
-  }else{
-    el("cashDescription").textContent=
-      "Bayar tunai saat pesanan diterima";
-
-    el("qrisDescription").textContent=
-      "QRIS dinamis dikirim admin setelah pesanan dikonfirmasi";
-  }
-
-  if(!takeaway&&firstOrder){
-    if(payment==="QRIS"){
-      el("firstOrderPolicyTitle").textContent=
-        "📱 QRIS — Wajib Lunas 100%";
-
-      el("firstOrderPolicyDescription").textContent=
-        "Pelanggan baru yang memilih QRIS wajib " +
-        "melunasi 100% total pesanan. " +
-        "Kode QRIS dinamis diberikan admin " +
-        "setelah pesanan dikonfirmasi.";
-    }else{
-      el("firstOrderPolicyTitle").textContent=
-        "💵 Cash — Wajib DP 50%";
-
-      el("firstOrderPolicyDescription").textContent=
-        "Pelanggan baru yang memilih Cash " +
-        "wajib membayar DP minimal 50% " +
-        "melalui transfer terlebih dahulu. " +
-        "Sisa pembayaran dilunasi tunai " +
-        "saat pesanan diterima.";
-    }
-  }
+  el("qrisDescription").textContent=
+    "Bayar langsung sesuai total pesanan";
 
   updateDepositSummary();
 
@@ -3076,50 +3247,37 @@ function updateCustomerPolicyUI(){
   );
 }
 
+/* ====================================
+   NOMINAL DP PELANGGAN BARU CASH
+==================================== */
+
 function updateDepositSummary(){
-  const takeaway=selectedMode==="takeaway";
-  const firstOrder=selectedCustomerType()==="new";
+  const cashDelivery=
+    selectedMode==="delivery"&&
+    selectedPaymentMethod()==="Cash";
 
-  if(takeaway||!firstOrder)return;
+  const customerNew=
+    selectedCustomerType()==="new";
 
-  const full=selectedFirstOrderPayment()==="full100";
+  if(!cashDelivery||!customerNew){
+    return;
+  }
 
-  el("depositAmountLabel").textContent=
-    full?"Pembayaran lunas 100%":"DP minimal 50%";
-
-  el("remainingAmountLabel").textContent=
-    full?"Sisa pembayaran":"Sisa tunai saat diterima";
-
-  el("depositInstruction").textContent=
-    full
-      ?"Admin akan mengirimkan QRIS dinamis " +
-       "setelah pesanan dikonfirmasi. " +
-       "Lakukan pembayaran lunas 100% " +
-       "sebelum QRIS kedaluwarsa. " +
-       "Jangan membayar sebelum menerima instruksi admin."
-      :"Admin akan mengirimkan instruksi " +
-       "transfer DP setelah pesanan dikonfirmasi. " +
-       "Sisa pembayaran dilunasi tunai " +
-       "saat pesanan diterima. " +
-       "Jangan transfer sebelum menerima instruksi admin.";
+  /*
+   * Nominal DP dihitung dari:
+   * Subtotal + Ongkir.
+   *
+   * Ongkir tetap dihitung delivery.js.
+   */
 
   const shippingText=
-    el("summaryShipping").textContent.trim();
+    el("summaryShipping")
+      .textContent.trim();
 
   const shippingKnown=
     /^Rp[\d.]+$/.test(shippingText);
 
-  const shipping=shippingKnown
-    ?Number(shippingText.replace(/\D/g,""))
-    :0;
-
-  const subtotal=getSubtotal();
-
-  const total=shippingKnown
-    ?subtotal+shipping
-    :null;
-
-  if(total===null){
+  if(!shippingKnown){
     el("depositAmount").textContent=
       "Menunggu ongkir";
 
@@ -3129,10 +3287,15 @@ function updateDepositSummary(){
     return;
   }
 
-  const initial=full
-    ?total
-    :Math.ceil(total/2);
+  const shipping=Number(
+    shippingText.replace(/\D/g,"")
+  );
 
+  const subtotal=getSubtotal();
+
+  const total=subtotal+shipping;
+
+  const initial=Math.ceil(total/2);
   const remaining=total-initial;
 
   el("depositAmount").textContent=
@@ -3142,10 +3305,14 @@ function updateDepositSummary(){
     formatRp(remaining);
 }
 
-/* STATUS PELANGGAN */
+/* ====================================
+   EVENT STATUS PELANGGAN
+==================================== */
 
 document
-  .querySelectorAll('input[name="customerType"]')
+  .querySelectorAll(
+    'input[name="customerType"]'
+  )
   .forEach(input=>{
     input.addEventListener(
       "change",
@@ -3153,10 +3320,14 @@ document
     );
   });
 
-/* METODE PEMBAYARAN */
+/* ====================================
+   EVENT METODE PEMBAYARAN
+==================================== */
 
 document
-  .querySelectorAll('input[name="payment"]')
+  .querySelectorAll(
+    'input[name="payment"]'
+  )
   .forEach(input=>{
     input.addEventListener(
       "change",
@@ -3164,7 +3335,9 @@ document
     );
   });
 
-/* UPDATE NOMINAL DP KETIKA KERANJANG BERUBAH */
+/* ====================================
+   NOMINAL DP MENGIKUTI KERANJANG
+==================================== */
 
 document.addEventListener(
   "lambe-cart-updated",
@@ -3172,9 +3345,9 @@ document.addEventListener(
 );
 
 /*
- * Perhitungan ongkir dilakukan delivery.js.
- * Pengamat berikut memastikan angka DP
- * diperbarui ketika ongkir selesai dihitung.
+ * Perubahan ongkir berasal dari delivery.js.
+ * MutationObserver dipertahankan agar
+ * nominal DP berubah setelah rute dihitung.
  */
 
 const shippingObserver=new MutationObserver(
@@ -3190,10 +3363,13 @@ shippingObserver.observe(
   }
 );
 
-/* MODE DELIVERY / TAKEAWAY */
+/* ====================================
+   MODE DELIVERY / TAKEAWAY
+==================================== */
 
 function updateModeUI(){
-  const takeaway=selectedMode==="takeaway";
+  const takeaway=
+    selectedMode==="takeaway";
 
   el("locationSection").hidden=takeaway;
   el("pickupSection").hidden=!takeaway;
@@ -3202,7 +3378,9 @@ function updateModeUI(){
   el("pickupField").hidden=!takeaway;
 
   el("customerSectionTitle").textContent=
-    takeaway?"Pengambilan":"Pengiriman";
+    takeaway
+      ?"Pengambilan"
+      :"Pengiriman";
 
   el("customerSectionHelp").textContent=
     takeaway
@@ -3221,21 +3399,32 @@ function updateModeUI(){
 
   el("pickupOutletInfo").textContent=
     "Ambil pesanan di outlet "+
-    (selectedOutlet==="mondokan"?"Mondokan":"Pahlawan")+
+    (
+      selectedOutlet==="mondokan"
+        ?"Mondokan"
+        :"Pahlawan"
+    )+
     ".";
 
-  document.querySelectorAll("[data-mode]").forEach(button=>{
-    const active=button.dataset.mode===selectedMode;
+  document
+    .querySelectorAll("[data-mode]")
+    .forEach(button=>{
+      const active=
+        button.dataset.mode===selectedMode;
 
-    button.classList.toggle("selected",active);
+      button.classList.toggle(
+        "selected",
+        active
+      );
 
-    button.setAttribute(
-      "aria-pressed",
-      String(active)
-    );
-  });
+      button.setAttribute(
+        "aria-pressed",
+        String(active)
+      );
+    });
 
   updatePickupTime();
+
   updateCustomerPolicyUI();
 
   document.dispatchEvent(
@@ -3243,59 +3432,113 @@ function updateModeUI(){
   );
 }
 
-document.querySelectorAll("[data-mode]").forEach(button=>{
-  button.addEventListener("click",()=>{
-    if(selectedMode===button.dataset.mode)return;
+document
+  .querySelectorAll("[data-mode]")
+  .forEach(button=>{
+    button.addEventListener(
+      "click",
+      ()=>{
+        if(
+          selectedMode===button.dataset.mode
+        ){
+          return;
+        }
 
-    selectedMode=button.dataset.mode;
-    updateModeUI();
-  });
-});
+        selectedMode=
+          button.dataset.mode;
 
-/* OUTLET */
-
-document.querySelectorAll("[data-outlet]").forEach(button=>{
-  button.addEventListener("click",()=>{
-    if(selectedOutlet===button.dataset.outlet)return;
-
-    selectedOutlet=button.dataset.outlet;
-
-    document.querySelectorAll("[data-outlet]").forEach(item=>{
-      const active=item===button;
-
-      item.classList.toggle("selected",active);
-
-      item.setAttribute(
-        "aria-pressed",
-        String(active)
-      );
-    });
-
-    el("pickupOutletInfo").textContent=
-      "Ambil pesanan di outlet "+
-      (selectedOutlet==="mondokan"?"Mondokan":"Pahlawan")+
-      ".";
-
-    document.dispatchEvent(
-      new Event("lambe-outlet-updated")
+        updateModeUI();
+      }
     );
   });
-});
 
-/* KONEKSI DENGAN DELIVERY.JS v9.3.3 */
+/* ====================================
+   OUTLET
+==================================== */
+
+document
+  .querySelectorAll("[data-outlet]")
+  .forEach(button=>{
+    button.addEventListener(
+      "click",
+      ()=>{
+        if(
+          selectedOutlet===button.dataset.outlet
+        ){
+          return;
+        }
+
+        selectedOutlet=
+          button.dataset.outlet;
+
+        document
+          .querySelectorAll("[data-outlet]")
+          .forEach(item=>{
+            const active=item===button;
+
+            item.classList.toggle(
+              "selected",
+              active
+            );
+
+            item.setAttribute(
+              "aria-pressed",
+              String(active)
+            );
+          });
+
+        el("pickupOutletInfo").textContent=
+          "Ambil pesanan di outlet "+
+          (
+            selectedOutlet==="mondokan"
+              ?"Mondokan"
+              :"Pahlawan"
+          )+
+          ".";
+
+        document.dispatchEvent(
+          new Event("lambe-outlet-updated")
+        );
+      }
+    );
+  });
+
+/* ====================================
+   KONEKSI DELIVERY.JS v9.3.4
+==================================== */
 
 window.LAMBE_APP={
   getOutlet:()=>selectedOutlet,
   getMode:()=>selectedMode,
-  getCart:()=>cart.map(item=>({...item})),
+
+  getCart:()=>cart.map(
+    item=>({...item})
+  ),
+
   getProduct:productById,
   getSubtotal,
-  getCustomerType:selectedCustomerType,
-  getFirstOrderPayment:selectedFirstOrderPayment,
+
+  /*
+   * QRIS: not_required
+   * Cash baru: new
+   * Cash lama: returning
+   */
+  getCustomerType:checkoutCustomerType,
+
+  /*
+   * QRIS: full100
+   * Cash baru: dp50
+   * Cash lama: null
+   */
+  getFirstOrderPayment:
+    selectedFirstOrderPayment,
+
   formatRp
 };
 
-/* AMBIL MENU ASLI */
+/* ====================================
+   AMBIL MENU ASLI
+==================================== */
 
 async function initializeMenu(){
   try{
@@ -3305,13 +3548,17 @@ async function initializeMenu(){
     );
 
     if(!response.ok){
-      throw new Error("HTTP "+response.status);
+      throw new Error(
+        "HTTP "+response.status
+      );
     }
 
     const data=await response.json();
 
     if(!Array.isArray(data)){
-      throw new Error("Format menu.json tidak sesuai.");
+      throw new Error(
+        "Format menu.json tidak sesuai."
+      );
     }
 
     menuData=data.filter(item=>
@@ -3319,7 +3566,9 @@ async function initializeMenu(){
       typeof item.id==="string"&&
       typeof item.name==="string"&&
       typeof item.category==="string"&&
-      Number.isFinite(Number(item.price))&&
+      Number.isFinite(
+        Number(item.price)
+      )&&
       Number(item.price)>=0
     ).map(item=>({
       ...item,
@@ -3328,7 +3577,9 @@ async function initializeMenu(){
 
     try{
       const saved=JSON.parse(
-        localStorage.getItem("lambe-turah-cart-v5")||"[]"
+        localStorage.getItem(
+          "lambe-turah-cart-v5"
+        )||"[]"
       );
 
       if(Array.isArray(saved)){
@@ -3343,7 +3594,9 @@ async function initializeMenu(){
         );
       }
     }catch(error){
-      console.warn("Keranjang lama tidak dapat dibaca.");
+      console.warn(
+        "Keranjang lama tidak dapat dibaca."
+      );
     }
 
     drawCategories();
@@ -3364,26 +3617,27 @@ async function initializeMenu(){
       </div>
     `;
 
-    console.error("Gagal memuat menu:",error);
+    console.error(
+      "Gagal memuat menu:",
+      error
+    );
   }
 }
 
-/* INISIALISASI */
+/* ====================================
+   INISIALISASI
+==================================== */
 
 updateModeUI();
 initializeMenu();
 
 </script>
 
-<!--
-  DELIVERY.JS v9.3.3
-  ONGKIR RP1.000/KM.
-  CASH PELANGGAN BARU: DP 50% VIA TRANSFER.
-  QRIS PELANGGAN BARU: LUNAS 100%.
-  TANPA APPS SCRIPT / DATABASE.
--->
+<!-- ====================================
+     DELIVERY.JS v9.3.4
+==================================== -->
 
-<script src="./delivery.js?v=9.3.3"></script>
+<script src="./delivery.js?v=9.3.4"></script>
 
 </body>
 </html>
