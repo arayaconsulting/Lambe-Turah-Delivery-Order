@@ -9,7 +9,7 @@
 
 <!--
   CEKER & KERANG PEDAS LAMBE TURAH
-  INDEX.HTML v9.4.4 — PREMIUM FOOD ORDER
+  INDEX.HTML v9.4.5 — PREMIUM FOOD ORDER
 
   DESAIN:
   - Burgundy, hitam, merah dan emas
@@ -27,7 +27,10 @@
   - Delivery 10.00–20.00 WIB
   - Takeaway 10.00–21.30 WIB
 
-  PEMBAYARAN:
+  PEMBAYARAN v9.4.5:
+  - QRIS tampil paling atas
+  - QRIS dipilih otomatis
+  - Cash tampil di bawah QRIS
   - QRIS: pembayaran penuh sesuai total
   - QRIS tidak menanyakan status pelanggan
   - Cash Delivery: tanya pelanggan baru/lama
@@ -792,9 +795,14 @@ main{
   font-size:23px;
 }
 
+/* ====================================
+   PEMBAYARAN v9.4.5
+   QRIS DI ATAS — CASH DI BAWAH
+==================================== */
+
 .pay-grid{
   display:grid;
-  grid-template-columns:1fr 1fr;
+  grid-template-columns:1fr;
   gap:12px;
   margin-top:16px;
 }
@@ -808,6 +816,9 @@ main{
   border-radius:15px;
   background:#faf9f7;
   cursor:pointer;
+  transition:
+    border-color .15s,
+    background .15s;
 }
 
 .pay-option:has(input:checked){
@@ -817,6 +828,7 @@ main{
 
 .pay-option input{
   accent-color:var(--red);
+  flex-shrink:0;
 }
 
 .pay-emoji{font-size:25px}
@@ -844,7 +856,7 @@ main{
 }
 
 /* ====================================
-   PEMBAYARAN SEDERHANA v9.4.4
+   PEMBAYARAN SEDERHANA
 ==================================== */
 
 .customer-policy{
@@ -1355,8 +1367,7 @@ main{
   .product-desc{font-size:10px}
   .product-price{font-size:17px}
 
-  .fields,
-  .pay-grid{
+  .fields{
     grid-template-columns:1fr;
   }
 
@@ -2110,7 +2121,8 @@ main{
   </div>
 
   <!-- ====================================
-       METODE PEMBAYARAN UTAMA
+       METODE PEMBAYARAN UTAMA v9.4.5
+       QRIS DI ATAS + DEFAULT QRIS
   ==================================== -->
 
   <h3 style="font-size:15px;margin:25px 0 0">
@@ -2119,34 +2131,15 @@ main{
 
   <div class="pay-grid">
 
+    <!-- QRIS PALING ATAS -->
+
     <label class="pay-option">
 
       <input
         type="radio"
         name="payment"
-        value="Cash"
+        value="QRIS"
         checked>
-
-      <span class="pay-emoji">
-        💵
-      </span>
-
-      <span>
-        <strong>Cash</strong>
-
-        <small id="cashDescription">
-          Bayar tunai saat pesanan diterima
-        </small>
-      </span>
-
-    </label>
-
-    <label class="pay-option">
-
-      <input
-        type="radio"
-        name="payment"
-        value="QRIS">
 
       <span class="pay-emoji">
         📱
@@ -2162,6 +2155,29 @@ main{
 
     </label>
 
+    <!-- CASH DI BAWAH -->
+
+    <label class="pay-option">
+
+      <input
+        type="radio"
+        name="payment"
+        value="Cash">
+
+      <span class="pay-emoji">
+        💵
+      </span>
+
+      <span>
+        <strong>Cash</strong>
+
+        <small id="cashDescription">
+          Bayar tunai saat pesanan diterima
+        </small>
+      </span>
+
+    </label>
+
   </div>
 
   <!-- ====================================
@@ -2171,7 +2187,8 @@ main{
 
   <div
     class="customer-policy"
-    id="customerPolicySection">
+    id="customerPolicySection"
+    hidden>
 
     <p class="customer-policy-title">
       Apakah ini pesanan Delivery pertama Anda?
@@ -2222,9 +2239,7 @@ main{
 
     </div>
 
-    <!-- ====================================
-         DP 50% HANYA PELANGGAN BARU CASH
-    ==================================== -->
+    <!-- DP 50% KHUSUS CASH PELANGGAN BARU -->
 
     <div
       class="first-order-payment"
@@ -2284,7 +2299,7 @@ main{
 
     </div>
 
-    <!-- PELANGGAN LAMA CASH -->
+    <!-- CASH PELANGGAN LAMA -->
 
     <div
       class="returning-customer-info"
@@ -2302,8 +2317,7 @@ main{
 
   <div
     class="qris-info"
-    id="qrisPaymentInfo"
-    hidden>
+    id="qrisPaymentInfo">
 
     QRIS dinamis akan dikirim admin setelah
     pesanan dikonfirmasi. Mohon segera lakukan
@@ -2316,8 +2330,9 @@ main{
   <div
     class="payment-note"
     id="paymentInfo">
-    Pembayaran tunai saat pesanan diterima.
-    Total akhir dikonfirmasi admin.
+    Bayar sesuai total pesanan.
+    QRIS dinamis dikirim admin setelah
+    pesanan dikonfirmasi.
   </div>
 
   <button
@@ -3124,13 +3139,13 @@ el("pickupWhen").addEventListener(
 );
 
 /* ====================================
-   PEMBAYARAN SEDERHANA v9.4.4
+   PEMBAYARAN SEDERHANA v9.4.5
 ==================================== */
 
 function selectedPaymentMethod(){
   return document.querySelector(
     'input[name="payment"]:checked'
-  )?.value||"Cash";
+  )?.value||"QRIS";
 }
 
 function selectedCustomerType(){
@@ -3634,7 +3649,7 @@ initializeMenu();
 </script>
 
 <!-- ====================================
-     DELIVERY.JS v9.3.4
+     DELIVERY.JS v9.3.4 TETAP
 ==================================== -->
 
 <script src="./delivery.js?v=9.3.4"></script>
