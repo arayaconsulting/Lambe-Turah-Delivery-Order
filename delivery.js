@@ -1,11 +1,12 @@
+
 (() => {
   "use strict";
 
   /*
    * CEKER & KERANG PEDAS LAMBE TURAH
-   * DELIVERY.JS v9.3.3 — FINAL
+   * DELIVERY.JS v9.3.4 — FINAL
    *
-   * KOMPATIBEL DENGAN INDEX.HTML v9.4.3
+   * KOMPATIBEL DENGAN INDEX.HTML v9.4.4
    *
    * CHECKOUT LANGSUNG KE WHATSAPP
    * TANPA GOOGLE APPS SCRIPT
@@ -23,22 +24,29 @@
    * - Delivery 10.00–20.00 WIB
    * - Takeaway 10.00–21.30 WIB
    * - Katalog dan keranjang tersedia 24 jam
-   * - Checkout otomatis ditutup di luar jam layanan
+   * - Checkout ditutup di luar jam layanan
    *
-   * PEMBAYARAN PELANGGAN BARU:
-   * - Cash: DP minimal 50% melalui transfer
-   * - Sisa DP dibayar tunai saat pesanan diterima
-   * - QRIS: wajib lunas 100%
-   * - QRIS dinamis memiliki batas waktu
-   * - Pembayaran dilakukan setelah instruksi admin
-   * - Pesanan diproses setelah pembayaran diverifikasi
+   * PEMBAYARAN:
    *
-   * PELANGGAN LAMA:
-   * - Cash atau QRIS seperti biasa
-   * - Status pelanggan diverifikasi admin
+   * QRIS:
+   * - Bayar penuh sesuai total pesanan
+   * - Tidak perlu memilih status pelanggan
+   * - Admin mengirimkan QRIS dinamis
+   * - Pembayaran sebelum QRIS kedaluwarsa
+   *
+   * CASH DELIVERY:
+   * - Pelanggan baru wajib DP minimal 50%
+   * - DP melalui transfer setelah instruksi admin
+   * - Sisa dibayar tunai saat pesanan diterima
+   * - Pelanggan lama bayar tunai saat diterima
    *
    * TAKEAWAY:
-   * - Tidak terkena ketentuan DP pelanggan baru
+   * - Cash atau QRIS
+   * - Tidak memerlukan status pelanggan
+   * - Tidak dikenakan aturan DP pelanggan baru
+   *
+   * PEMBAYARAN TIDAK OTOMATIS.
+   * ADMIN TETAP MELAKUKAN VERIFIKASI.
    */
 
   // ==========================================
@@ -99,7 +107,7 @@
   const HOURS_REFRESH_MS = 15000;
 
   // ==========================================
-  // KONEKSI INDEX.HTML v9.4.3
+  // KONEKSI INDEX.HTML v9.4.4
   // ==========================================
 
   const app = window.LAMBE_APP;
@@ -124,8 +132,9 @@
   ) {
     console.error(
       "LAMBE_APP belum tersedia atau tidak lengkap. " +
-      "Pastikan menggunakan index.html v9.4.3."
+      "Pastikan index.html menggunakan v9.4.4."
     );
+
     return;
   }
 
@@ -149,21 +158,24 @@
     "customerPolicySection",
     "firstOrderPaymentSection",
     "returningCustomerInfo",
+    "qrisPaymentInfo",
     "depositAmount",
     "remainingAmount",
     "depositAmountLabel",
     "remainingAmountLabel",
-    "firstOrderPolicyTitle",
-    "firstOrderPolicyDescription",
-    "depositInstruction",
-    "qrisUrgency"
+    "depositInstruction"
   ];
 
-  if (requiredIds.some(id => !$(id))) {
+  const missingIds = requiredIds.filter(
+    id => !$(id)
+  );
+
+  if (missingIds.length) {
     console.error(
-      "Ada elemen checkout atau pembayaran " +
-      "yang tidak ditemukan pada index.html."
+      "Elemen index.html tidak lengkap:",
+      missingIds.join(", ")
     );
+
     return;
   }
 
@@ -173,6 +185,10 @@
     "Rp" +
     Math.round(Number(value) || 0)
       .toLocaleString("id-ID");
+
+  // ==========================================
+  // STATUS LOKASI DAN RUTE
+  // ==========================================
 
   let location = null;
   let route = null;
@@ -186,7 +202,7 @@
   let routeController = null;
 
   // ==========================================
-  // OUTLET DAN MODE PEMESANAN
+  // OUTLET DAN MODE
   // ==========================================
 
   function outletKey() {
@@ -217,82 +233,77 @@
     return (
       document.querySelector(
         'input[name="payment"]:checked'
-      )?.value || "Cash"
+      )?.value || ""
     );
   }
 
   // ==========================================
-  // STATUS PELANGGAN
+  // STATUS PELANGGAN v9.3.4
   // ==========================================
 
   function selectedCustomerType() {
-    return String(
-      app.getCustomerType() || ""
-    );
+    return app.getCustomerType();
   }
 
   function selectedFirstOrderPayment() {
     return app.getFirstOrderPayment();
   }
 
-  function isFirstOrderDelivery() {
+  function isQRIS() {
+    return selectedPayment() === "QRIS";
+  }
+
+  function isCashDelivery() {
     return (
       !isTakeaway() &&
+      selectedPayment() === "Cash"
+    );
+  }
+
+  function isFirstOrderCashDelivery() {
+    return (
+      isCashDelivery() &&
       selectedCustomerType() === "new"
     );
   }
 
   // ==========================================
-  // ATURAN PEMBAYARAN PELANGGAN BARU
+  // ATURAN PEMBAYARAN
   // ==========================================
 
   /*
-   * Pelanggan baru + Cash:
-   * - DP minimal 50% melalui transfer.
-   * - Sisa dibayar Cash saat pesanan diterima.
+   * QRIS:
+   * - Semua pelanggan membayar penuh.
+   * - Tidak menanyakan pelanggan baru/lama.
    *
-   * Pelanggan baru + QRIS:
-   * - Lunas 100%.
-   * - Menggunakan QRIS dinamis dari admin.
-   * - Pembayaran harus dilakukan sebelum
-   *   QRIS kedaluwarsa.
+   * Cash Delivery pelanggan baru:
+   * - DP 50% dari total termasuk ongkir.
+   * - Sisa pembayaran tunai saat diterima.
    *
-   * Status pembayaran tidak otomatis berubah
-   * menjadi lunas karena website tidak
-   * terhubung dengan sistem pembayaran.
+   * Cash Delivery pelanggan lama:
+   * - Bayar tunai saat diterima.
+   *
+   * Takeaway:
+   * - Cash atau QRIS seperti biasa.
    */
 
-  function expectedFirstOrderChoice(payment) {
-    if (payment === "Cash") {
-      return "dp50";
+  function expectedPaymentChoice() {
+    if (isQRIS() && !isTakeaway()) {
+      return "full100";
     }
 
-    if (payment === "QRIS") {
-      return "full100";
+    if (isFirstOrderCashDelivery()) {
+      return "dp50";
     }
 
     return null;
   }
 
-  function firstOrderPaymentLabel(value) {
-    if (value === "dp50") {
-      return "DP minimal 50%";
-    }
-
-    if (value === "full100") {
-      return "Lunas 100%";
-    }
-
-    return "";
-  }
-
-  // ==========================================
-  // PERHITUNGAN PEMBAYARAN AWAL
-  // ==========================================
-
   function calculateInitialPayment(
     total,
-    firstOrderChoice
+    payment,
+    customerType,
+    takeaway
   ) {
     if (
       !Number.isFinite(total) ||
@@ -301,7 +312,22 @@
       return null;
     }
 
-    if (firstOrderChoice === "dp50") {
+    if (payment === "QRIS") {
+      return {
+        initial: total,
+        remaining: 0,
+        label: "Bayar sesuai total pesanan",
+        method: "QRIS Dinamis",
+        percentage: 100,
+        requiresAdvance: true
+      };
+    }
+
+    if (
+      !takeaway &&
+      payment === "Cash" &&
+      customerType === "new"
+    ) {
       const initial = Math.ceil(
         total * FIRST_ORDER_DP_RATE
       );
@@ -310,24 +336,20 @@
         initial,
         remaining: total - initial,
         label: "DP minimal 50%",
-        percentage: 50,
         method: "Transfer",
-        status: "Menunggu pembayaran DP"
+        percentage: 50,
+        requiresAdvance: true
       };
     }
 
-    if (firstOrderChoice === "full100") {
-      return {
-        initial: total,
-        remaining: 0,
-        label: "Lunas 100%",
-        percentage: 100,
-        method: "QRIS Dinamis",
-        status: "Menunggu pelunasan QRIS"
-      };
-    }
-
-    return null;
+    return {
+      initial: 0,
+      remaining: total,
+      label: "Bayar saat pesanan diterima",
+      method: "Cash",
+      percentage: 0,
+      requiresAdvance: false
+    };
   }
 
   // ==========================================
@@ -552,6 +574,8 @@
   // ==========================================
 
   /*
+   * Contoh:
+   *
    * 0,8 km => 1 km
    * 1,5 km => 1 km
    * 1,6 km => 2 km
@@ -561,6 +585,9 @@
    * 7,5 km => 7 km
    * 7,6 km => 8 km
    * 8,6 km => 9 km
+   *
+   * Nilai tepat x,5 dibulatkan ke bawah.
+   * Tarif minimum tetap 1 km.
    */
 
   function roundedDistance(km) {
@@ -657,54 +684,58 @@
   function updatePaymentInfo() {
     const takeaway = isTakeaway();
     const payment = selectedPayment();
-    const firstOrder = isFirstOrderDelivery();
 
-    if (firstOrder) {
-      if (payment === "QRIS") {
-        $("paymentInfo").textContent =
-          "Pelanggan baru yang memilih QRIS " +
-          "wajib melunasi 100% total pesanan. " +
-          "QRIS dinamis akan dikirim admin " +
-          "setelah pesanan dikonfirmasi. " +
-          "Segera lakukan pembayaran " +
-          "sebelum QRIS kedaluwarsa. " +
-          "Pesanan diproses setelah " +
-          "pembayaran diverifikasi admin.";
-
-      } else {
-        $("paymentInfo").textContent =
-          "Pelanggan baru yang memilih Cash " +
-          "wajib membayar DP minimal 50% " +
-          "melalui transfer terlebih dahulu. " +
-          "Admin akan memberikan instruksi transfer " +
-          "setelah pesanan dikonfirmasi. " +
-          "Sisa pembayaran dilunasi tunai " +
-          "saat pesanan diterima. " +
-          "Pesanan diproses setelah DP diverifikasi.";
-      }
+    if (payment === "QRIS") {
+      $("paymentInfo").textContent =
+        "Bayar sesuai total pesanan. " +
+        "QRIS dinamis dikirim admin setelah " +
+        "pesanan dikonfirmasi. " +
+        "Segera bayar sebelum kode kedaluwarsa. " +
+        "Pesanan diproses setelah " +
+        "pembayaran diverifikasi admin.";
 
       return;
     }
 
-    if (payment === "QRIS") {
+    if (
+      !takeaway &&
+      selectedCustomerType() === "new"
+    ) {
       $("paymentInfo").textContent =
-        "QRIS dinamis akan dikirim admin " +
-        "setelah pesanan dan total pembayaran " +
-        "dikonfirmasi. Segera bayar " +
-        "sebelum QRIS kedaluwarsa. " +
-        "Jangan membayar sebelum mendapat " +
-        "arahan admin.";
+        "Pelanggan baru: DP minimal 50% " +
+        "melalui transfer setelah konfirmasi admin. " +
+        "Sisa pembayaran tunai saat pesanan diterima. " +
+        "Pesanan diproses setelah DP diverifikasi.";
+
+      return;
+    }
+
+    if (
+      !takeaway &&
+      selectedCustomerType() === "returning"
+    ) {
+      $("paymentInfo").textContent =
+        "Pembayaran tunai saat pesanan diterima. " +
+        "Riwayat pemesanan akan diverifikasi admin.";
+
+      return;
+    }
+
+    if (
+      !takeaway &&
+      !selectedCustomerType()
+    ) {
+      $("paymentInfo").textContent =
+        "Pilih apakah ini pesanan Delivery pertama Anda " +
+        "untuk melihat ketentuan pembayaran Cash.";
 
       return;
     }
 
     $("paymentInfo").textContent =
-      takeaway
-        ? "Pembayaran tunai saat mengambil pesanan " +
-          "di outlet. Waktu pengambilan dan total akhir " +
-          "dikonfirmasi admin."
-        : "Pembayaran tunai saat pesanan diterima. " +
-          "Total akhir dikonfirmasi admin.";
+      "Pembayaran tunai saat mengambil pesanan " +
+      "di outlet. Waktu pengambilan dan total akhir " +
+      "dikonfirmasi admin.";
   }
 
   // ==========================================
@@ -787,6 +818,7 @@
 
     if (preparingWhatsApp) {
       checkout.disabled = true;
+
       checkout.textContent =
         "Membuka WhatsApp...";
 
@@ -813,6 +845,7 @@
       calculating
     ) {
       checkout.disabled = true;
+
       checkout.textContent =
         "Menghitung Ongkir...";
 
@@ -821,6 +854,7 @@
       !currentRoute
     ) {
       checkout.disabled = true;
+
       checkout.textContent =
         "Tentukan Lokasi Pengiriman Dahulu";
 
@@ -829,11 +863,13 @@
       fee === null
     ) {
       checkout.disabled = true;
+
       checkout.textContent =
         "Di Luar Jangkauan Delivery";
 
     } else if (subtotal <= 0) {
       checkout.disabled = true;
+
       checkout.textContent =
         "Pilih Menu Terlebih Dahulu";
 
@@ -842,6 +878,7 @@
       subtotal < minimumSubtotal(currentRoute.km)
     ) {
       checkout.disabled = true;
+
       checkout.textContent =
         "Minimal Order " +
         rupiah(
@@ -850,22 +887,33 @@
 
     } else if (
       !takeaway &&
+      !["Cash", "QRIS"].includes(
+        selectedPayment()
+      )
+    ) {
+      checkout.disabled = true;
+
+      checkout.textContent =
+        "Pilih Metode Pembayaran";
+
+    } else if (
+      isCashDelivery() &&
       !["new", "returning"].includes(
         selectedCustomerType()
       )
     ) {
       checkout.disabled = true;
+
       checkout.textContent =
         "Pilih Status Pelanggan";
 
     } else if (
-      isFirstOrderDelivery() &&
+      !takeaway &&
       selectedFirstOrderPayment() !==
-        expectedFirstOrderChoice(
-          selectedPayment()
-        )
+        expectedPaymentChoice()
     ) {
       checkout.disabled = true;
+
       checkout.textContent =
         "Periksa Metode Pembayaran";
 
@@ -916,6 +964,7 @@
         "Silakan tentukan lokasi pengiriman.",
         "error"
       );
+
       return;
     }
 
@@ -926,6 +975,7 @@
         "Pilih outlet terlebih dahulu.",
         "error"
       );
+
       return;
     }
 
@@ -936,6 +986,7 @@
     const requestedOutlet = outletKey();
 
     calculating = true;
+
     updateSummary();
 
     setLocationStatus(
@@ -996,7 +1047,9 @@
       }
 
       const km = meters / 1000;
+
       const fee = deliveryFee(km);
+
       const rounded = roundedDistance(km);
 
       route = {
@@ -1050,6 +1103,7 @@
       if (sequence === requestSequence) {
         calculating = false;
         routeController = null;
+
         updateSummary();
       }
     }
@@ -1077,6 +1131,7 @@
           "Safari atau Chrome.",
           "error"
         );
+
         return;
       }
 
@@ -1086,6 +1141,7 @@
           "Buka website melalui alamat resminya.",
           "error"
         );
+
         return;
       }
 
@@ -1121,6 +1177,7 @@
               "Koordinat GPS tidak valid.",
               "error"
             );
+
             return;
           }
 
@@ -1147,6 +1204,7 @@
           }
 
           location = null;
+
           $("mapsLink").value = "";
 
           invalidateRoute();
@@ -1228,6 +1286,7 @@
       if (isTakeaway()) {
         invalidateRoute();
         updateSummary();
+
         return;
       }
 
@@ -1255,6 +1314,7 @@
       gpsSequence += 1;
 
       invalidateRoute();
+
       updatePaymentInfo();
 
       if (
@@ -1369,6 +1429,107 @@
   }
 
   // ==========================================
+  // VALIDASI PEMBAYARAN
+  // ==========================================
+
+  function validatePaymentSelection(
+    takeaway,
+    payment
+  ) {
+    if (
+      !["Cash", "QRIS"].includes(payment)
+    ) {
+      alert(
+        "Pilih metode pembayaran terlebih dahulu."
+      );
+
+      return null;
+    }
+
+    if (takeaway) {
+      return {
+        customerType: null,
+        paymentChoice: null
+      };
+    }
+
+    if (payment === "QRIS") {
+      if (
+        selectedCustomerType() !== "not_required" ||
+        selectedFirstOrderPayment() !== "full100"
+      ) {
+        alert(
+          "Pilihan pembayaran QRIS tidak sesuai. " +
+          "Silakan pilih QRIS kembali."
+        );
+
+        return null;
+      }
+
+      return {
+        customerType: "not_required",
+        paymentChoice: "full100"
+      };
+    }
+
+    const customerType =
+      selectedCustomerType();
+
+    if (
+      !["new", "returning"].includes(
+        customerType
+      )
+    ) {
+      alert(
+        "Apakah ini pesanan Delivery pertama Anda? " +
+        "Silakan pilih salah satu jawaban."
+      );
+
+      $("customerPolicySection")
+        .scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+
+      return null;
+    }
+
+    if (customerType === "new") {
+      if (
+        selectedFirstOrderPayment() !== "dp50"
+      ) {
+        alert(
+          "Pelanggan baru dengan pembayaran Cash " +
+          "wajib DP minimal 50%."
+        );
+
+        return null;
+      }
+
+      return {
+        customerType: "new",
+        paymentChoice: "dp50"
+      };
+    }
+
+    if (
+      selectedFirstOrderPayment() !== null
+    ) {
+      alert(
+        "Pilihan pembayaran Cash pelanggan lama " +
+        "tidak sesuai. Silakan periksa kembali."
+      );
+
+      return null;
+    }
+
+    return {
+      customerType: "returning",
+      paymentChoice: null
+    };
+  }
+
+  // ==========================================
   // SIAPKAN DATA PESANAN
   // ==========================================
 
@@ -1405,6 +1566,7 @@
         "Titik pengiriman atau ongkir belum valid. " +
         "Silakan hitung ulang."
       );
+
       return null;
     }
 
@@ -1417,6 +1579,7 @@
       alert(
         "Pilih menu terlebih dahulu."
       );
+
       return null;
     }
 
@@ -1440,6 +1603,7 @@
           "Keranjang tidak valid. " +
           "Periksa kembali jumlah pesanan."
         );
+
         return null;
       }
 
@@ -1454,6 +1618,7 @@
           "Harga salah satu menu tidak valid. " +
           "Silakan muat ulang halaman."
         );
+
         return null;
       }
 
@@ -1488,6 +1653,7 @@
           product.name +
           "."
         );
+
         return null;
       }
 
@@ -1500,6 +1666,7 @@
           product.name +
           "."
         );
+
         return null;
       }
 
@@ -1526,6 +1693,7 @@
         "Total keranjang berubah. " +
         "Silakan periksa ulang pesanan."
       );
+
       return null;
     }
 
@@ -1536,6 +1704,7 @@
       alert(
         "Total belanja tidak valid."
       );
+
       return null;
     }
 
@@ -1550,6 +1719,7 @@
         ) +
         "."
       );
+
       return null;
     }
 
@@ -1587,6 +1757,7 @@
       );
 
       $("customerName").focus();
+
       return null;
     }
 
@@ -1597,6 +1768,7 @@
       );
 
       $("customerPhone").focus();
+
       return null;
     }
 
@@ -1610,62 +1782,37 @@
       );
 
       $("customerAddress").focus();
+
       return null;
     }
 
-    if (
-      !["Cash", "QRIS"].includes(payment) ||
-      !outlet
-    ) {
+    if (!outlet) {
       alert(
-        "Pilih outlet dan metode pembayaran " +
-        "yang tersedia."
+        "Pilih outlet yang tersedia."
       );
+
       return null;
     }
 
     // ========================================
-    // STATUS PELANGGAN DELIVERY
+    // VALIDASI JENIS PEMBAYARAN
     // ========================================
 
-    let customerType = null;
-    let firstOrderChoice = null;
-    let initialPayment = null;
+    const paymentSelection =
+      validatePaymentSelection(
+        takeaway,
+        payment
+      );
 
-    if (!takeaway) {
-      customerType = selectedCustomerType();
-
-      if (
-        !["new", "returning"].includes(
-          customerType
-        )
-      ) {
-        alert(
-          "Pilih status pelanggan Delivery Order."
-        );
-        return null;
-      }
-
-      if (customerType === "new") {
-        firstOrderChoice =
-          selectedFirstOrderPayment();
-
-        const expected =
-          expectedFirstOrderChoice(payment);
-
-        if (
-          !expected ||
-          firstOrderChoice !== expected
-        ) {
-          alert(
-            "Metode pembayaran pelanggan baru " +
-            "belum sesuai. Cash wajib DP 50% " +
-            "dan QRIS wajib lunas 100%."
-          );
-          return null;
-        }
-      }
+    if (!paymentSelection) {
+      return null;
     }
+
+    const customerType =
+      paymentSelection.customerType;
+
+    const firstOrderChoice =
+      paymentSelection.paymentChoice;
 
     // ========================================
     // WAKTU PENGAMBILAN TAKEAWAY
@@ -1696,6 +1843,7 @@
           );
 
           $("pickupTime").focus();
+
           return null;
         }
 
@@ -1707,9 +1855,14 @@
         alert(
           "Pilih waktu pengambilan."
         );
+
         return null;
       }
     }
+
+    // ========================================
+    // TOTAL DAN PEMBAYARAN AWAL
+    // ========================================
 
     const fee =
       takeaway
@@ -1718,28 +1871,25 @@
 
     const total = subtotal + fee;
 
-    // ========================================
-    // HITUNG PEMBAYARAN AWAL PELANGGAN BARU
-    // ========================================
+    const paymentPlan =
+      calculateInitialPayment(
+        total,
+        payment,
+        customerType,
+        takeaway
+      );
 
-    if (
-      !takeaway &&
-      customerType === "new"
-    ) {
-      initialPayment =
-        calculateInitialPayment(
-          total,
-          firstOrderChoice
-        );
+    if (!paymentPlan) {
+      alert(
+        "Nominal pembayaran belum dapat dihitung."
+      );
 
-      if (!initialPayment) {
-        alert(
-          "Nominal pembayaran awal " +
-          "belum dapat dihitung."
-        );
-        return null;
-      }
+      return null;
     }
+
+    // ========================================
+    // DATA PESANAN FINAL
+    // ========================================
 
     return {
       takeaway,
@@ -1749,8 +1899,12 @@
       address,
       notes,
       payment,
+
       items: lines,
+
       subtotal,
+      fee,
+      total,
 
       km: takeaway
         ? null
@@ -1760,9 +1914,6 @@
         ? null
         : roundedDistance(route.km),
 
-      fee,
-      total,
-
       mapsLink: takeaway
         ? ""
         : $("mapsLink").value,
@@ -1771,7 +1922,7 @@
 
       customerType,
       firstOrderChoice,
-      initialPayment
+      paymentPlan
     };
   }
 
@@ -1808,6 +1959,10 @@
       "------------------------"
     ];
 
+    // ========================================
+    // DAFTAR MENU
+    // ========================================
+
     order.items.forEach(
       (item, index) => {
         message.push(
@@ -1838,6 +1993,10 @@
       }
     );
 
+    // ========================================
+    // RINGKASAN PEMBAYARAN
+    // ========================================
+
     message.push(
       "*RINCIAN PEMBAYARAN*",
       "------------------------",
@@ -1852,10 +2011,10 @@
         rupiah(order.total) +
         "*",
 
-      "Metode dipilih: " +
+      "Metode: " +
         (
           order.payment === "QRIS"
-            ? "QRIS"
+            ? "QRIS Dinamis"
             : "Cash"
         ),
 
@@ -1863,48 +2022,102 @@
     );
 
     // ========================================
-    // STATUS DAN PEMBAYARAN PELANGGAN BARU
+    // QRIS — TANPA STATUS PELANGGAN
+    // ========================================
+
+    if (order.payment === "QRIS") {
+      message.push(
+        "*PEMBAYARAN QRIS*",
+        "------------------------",
+
+        "Pembayaran penuh sesuai total pesanan.",
+
+        "Nominal QRIS estimasi: " +
+          rupiah(order.paymentPlan.initial),
+
+        "Status: MENUNGGU PEMBAYARAN",
+
+        "Mohon admin mengirimkan QRIS dinamis " +
+          "setelah pesanan dikonfirmasi.",
+
+        "Pembayaran akan segera dilakukan " +
+          "sebelum QRIS kedaluwarsa.",
+
+        ""
+      );
+    }
+
+    // ========================================
+    // CASH DELIVERY PELANGGAN BARU
     // ========================================
 
     if (
       !order.takeaway &&
+      order.payment === "Cash" &&
       order.customerType === "new"
     ) {
       message.push(
-        "*STATUS PELANGGAN*",
+        "*PEMBAYARAN CASH — PELANGGAN BARU*",
         "------------------------",
 
-        "Pelanggan baru (Delivery pertama)",
+        "Status: Delivery pertama",
 
-        "Ketentuan pembayaran: " +
-          order.initialPayment.label,
+        "DP minimal 50%: " +
+          rupiah(order.paymentPlan.initial),
 
-        "Metode pembayaran awal: " +
-          order.initialPayment.method,
+        "Sisa tunai saat diterima: " +
+          rupiah(order.paymentPlan.remaining),
 
-        "*PEMBAYARAN AWAL: " +
-          rupiah(order.initialPayment.initial) +
-          "*",
+        "Pembayaran DP: Transfer",
 
-        "Sisa pembayaran: " +
-          rupiah(order.initialPayment.remaining),
+        "Status DP: BELUM DIVERIFIKASI",
 
-        "Status pembayaran: BELUM DIVERIFIKASI",
+        "Mohon admin mengirimkan " +
+          "instruksi transfer DP " +
+          "setelah pesanan dikonfirmasi.",
 
         ""
       );
+    }
 
-    } else if (
+    // ========================================
+    // CASH DELIVERY PELANGGAN LAMA
+    // ========================================
+
+    if (
       !order.takeaway &&
+      order.payment === "Cash" &&
       order.customerType === "returning"
     ) {
       message.push(
-        "*STATUS PELANGGAN*",
+        "*PEMBAYARAN CASH*",
         "------------------------",
 
-        "Pelanggan lama (pernah melakukan DO)",
+        "Status: Sudah pernah melakukan DO",
 
-        "Mohon admin verifikasi riwayat pesanan.",
+        "Pembayaran tunai saat pesanan diterima.",
+
+        "Mohon admin memverifikasi " +
+          "riwayat pemesanan pelanggan.",
+
+        ""
+      );
+    }
+
+    // ========================================
+    // TAKEAWAY CASH
+    // ========================================
+
+    if (
+      order.takeaway &&
+      order.payment === "Cash"
+    ) {
+      message.push(
+        "*PEMBAYARAN CASH*",
+        "------------------------",
+
+        "Pembayaran tunai saat " +
+          "mengambil pesanan di outlet.",
 
         ""
       );
@@ -1981,77 +2194,30 @@
     }
 
     // ========================================
-    // INSTRUKSI PEMBAYARAN PELANGGAN BARU
+    // PENUTUP DAN INSTRUKSI
     // ========================================
 
-    if (
+    message.push("");
+
+    if (order.payment === "QRIS") {
+      message.push(
+        "Pesanan diproses setelah " +
+        "pembayaran QRIS diverifikasi admin."
+      );
+
+    } else if (
       !order.takeaway &&
       order.customerType === "new"
     ) {
-      if (order.payment === "Cash") {
-        message.push(
-          "",
-          "*KETENTUAN DP PELANGGAN BARU*",
-
-          "Saya memilih pembayaran Cash " +
-            "dengan DP minimal 50%.",
-
-          "DP estimasi: " +
-            rupiah(order.initialPayment.initial),
-
-          "Mohon admin memberikan " +
-            "instruksi transfer DP " +
-            "setelah pesanan dikonfirmasi.",
-
-          "Sisa pembayaran sebesar " +
-            rupiah(order.initialPayment.remaining) +
-            " akan saya lunasi tunai " +
-            "saat pesanan diterima.",
-
-          "Pesanan diproses setelah " +
-            "DP diverifikasi admin."
-        );
-
-      } else if (order.payment === "QRIS") {
-        message.push(
-          "",
-          "*KETENTUAN QRIS PELANGGAN BARU*",
-
-          "Saya memilih pembayaran QRIS " +
-            "dan bersedia melunasi 100% " +
-            "total pesanan.",
-
-          "Nominal QRIS estimasi: " +
-            rupiah(order.initialPayment.initial),
-
-          "Mohon admin mengirimkan " +
-            "QRIS dinamis setelah " +
-            "pesanan dikonfirmasi.",
-
-          "Saya akan segera melakukan " +
-            "pembayaran sebelum QRIS kedaluwarsa.",
-
-          "Pesanan diproses setelah " +
-            "pelunasan diverifikasi admin."
-        );
-      }
-
-    } else if (order.payment === "QRIS") {
       message.push(
-        "",
-        "Mohon admin mengirimkan QRIS dinamis " +
-          "setelah pesanan dikonfirmasi. " +
-          "Saya akan membayar sebelum QRIS kedaluwarsa."
+        "Pesanan diproses setelah " +
+        "DP transfer diverifikasi admin."
       );
 
     } else {
       message.push(
-        "",
-        order.takeaway
-          ? "Pembayaran tunai saat " +
-            "mengambil pesanan di outlet."
-          : "Pembayaran tunai saat " +
-            "pesanan diterima."
+        "Pesanan diproses setelah " +
+        "dikonfirmasi admin outlet."
       );
     }
 
@@ -2061,6 +2227,56 @@
     );
 
     return message.join("\n");
+  }
+
+  // ==========================================
+  // DETAIL PEMBAYARAN KONFIRMASI
+  // ==========================================
+
+  function confirmationPaymentDetail(order) {
+    if (order.payment === "QRIS") {
+      return (
+        "Pembayaran: QRIS Dinamis\n" +
+        "Bayar sesuai total: " +
+        rupiah(order.total) +
+        "\n" +
+        "QRIS dikirim admin setelah konfirmasi\n" +
+        "Segera bayar sebelum kedaluwarsa"
+      );
+    }
+
+    if (
+      !order.takeaway &&
+      order.customerType === "new"
+    ) {
+      return (
+        "Pembayaran: Cash + Transfer DP\n" +
+        "DP minimal 50%: " +
+        rupiah(order.paymentPlan.initial) +
+        "\n" +
+        "Sisa tunai saat diterima: " +
+        rupiah(order.paymentPlan.remaining) +
+        "\n" +
+        "Transfer setelah instruksi admin"
+      );
+    }
+
+    if (
+      !order.takeaway &&
+      order.customerType === "returning"
+    ) {
+      return (
+        "Pembayaran: Cash\n" +
+        "Status: Sudah pernah pesan\n" +
+        "Bayar tunai saat diterima\n" +
+        "Riwayat pelanggan diverifikasi admin"
+      );
+    }
+
+    return (
+      "Pembayaran: Cash\n" +
+      "Bayar tunai saat mengambil pesanan"
+    );
   }
 
   // ==========================================
@@ -2080,7 +2296,7 @@
         return;
       }
 
-      // Pemeriksaan jam sebelum validasi.
+      // Pemeriksaan jam pertama.
 
       if (!canCheckoutNow()) {
         updateSummary();
@@ -2105,7 +2321,13 @@
 
       const order = getOrder();
 
-      if (!order) return;
+      if (!order) {
+        return;
+      }
+
+      // ========================================
+      // DETAIL DELIVERY / TAKEAWAY
+      // ========================================
 
       const detail =
         order.takeaway
@@ -2119,63 +2341,12 @@
             "\nOngkir: " +
             rupiah(order.fee);
 
-      let paymentDetail =
-        "Pembayaran: " +
-        order.payment;
+      const paymentDetail =
+        confirmationPaymentDetail(order);
 
       // ========================================
-      // KONFIRMASI PEMBAYARAN PELANGGAN BARU
+      // KONFIRMASI PEMESANAN
       // ========================================
-
-      if (
-        !order.takeaway &&
-        order.customerType === "new"
-      ) {
-        if (order.payment === "Cash") {
-          paymentDetail =
-            "Status: Pelanggan Baru\n" +
-
-            "Metode: Cash + Transfer DP\n" +
-
-            "DP minimal 50%: " +
-            rupiah(order.initialPayment.initial) +
-            "\n" +
-
-            "Sisa tunai saat diterima: " +
-            rupiah(order.initialPayment.remaining) +
-            "\n" +
-
-            "Transfer DP setelah instruksi admin";
-
-        } else {
-          paymentDetail =
-            "Status: Pelanggan Baru\n" +
-
-            "Metode: QRIS Dinamis\n" +
-
-            "Wajib lunas 100%: " +
-            rupiah(order.initialPayment.initial) +
-            "\n" +
-
-            "Sisa pembayaran: Rp0\n" +
-
-            "QRIS dikirim admin setelah konfirmasi\n" +
-
-            "Segera bayar sebelum QRIS kedaluwarsa";
-        }
-      }
-
-      if (
-        !order.takeaway &&
-        order.customerType === "returning"
-      ) {
-        paymentDetail =
-          "Status: Pelanggan Lama " +
-          "(perlu verifikasi admin)\n" +
-
-          "Pembayaran: " +
-          order.payment;
-      }
 
       const ok =
         window.confirm(
@@ -2202,7 +2373,7 @@
 
           "Total estimasi: " +
           rupiah(order.total) +
-          "\n" +
+          "\n\n" +
 
           paymentDetail +
           "\n\n" +
@@ -2215,10 +2386,11 @@
           "Lanjutkan?"
         );
 
-      if (!ok) return;
+      if (!ok) {
+        return;
+      }
 
-      // Pemeriksaan jam terakhir
-      // setelah dialog konfirmasi.
+      // Pemeriksaan jam setelah konfirmasi.
 
       if (!canCheckoutNow()) {
         updateSummary();
@@ -2232,6 +2404,10 @@
         return;
       }
 
+      // ========================================
+      // URL WHATSAPP OUTLET
+      // ========================================
+
       const url =
         "https://wa.me/" +
         order.outlet.whatsapp +
@@ -2244,8 +2420,11 @@
 
       updateSummary();
 
-      // Dibuka di tab yang sama
-      // untuk kompatibilitas iPhone dan Android.
+      /*
+       * WhatsApp dibuka melalui navigasi
+       * di tab yang sama agar sesuai dengan
+       * alur sebelumnya pada iPhone/Android.
+       */
 
       window.location.assign(url);
     }
